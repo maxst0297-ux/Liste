@@ -338,7 +338,8 @@ const QUELLEN = {
   zoll:    {titel:'Zoll – Betäubungsmittelrecht', meta:'zoll.de', url:'https://www.zoll.de/DE/Fachthemen/Verbote-Beschraenkungen/Schutz-der-menschlichen-Gesundheit/Betaeubungsmittel/Allgemeines-Betaeubungsmittelrecht/allgemeines-betaeubungsmittelrecht_node.html'},
   amg:     {titel:'Arzneimittelgesetz (AMG) – amtlich', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/amg_1976/'},
   kcang:   {titel:'Konsumcannabisgesetz (KCanG) – amtlich', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/kcang/'},
-  identa:  {titel:'Gelbe Liste Identa – Tabletten identifizieren', meta:'gelbe-liste.de', url:'https://www.gelbe-liste.de/identa'}
+  identa:  {titel:'Gelbe Liste Identa – Tabletten identifizieren', meta:'gelbe-liste.de', url:'https://www.gelbe-liste.de/identa'},
+  bayern:  {titel:'Gesetze Bayern (BAYERN.RECHT) – Bundes- & Landesrecht', meta:'gesetze-bayern.de', url:'https://www.gesetze-bayern.de/'}
 };
 
 /* =========================================================================
@@ -355,7 +356,7 @@ const DATA = [
     gesetz:'WaffG Anlage 2, Abschnitt 1 (verbotene Gegenstände)',
     begruendung:'Springmesser bestimmter Bauart und Fallmesser zählen zu den verbotenen Gegenständen. Umgang/Besitz ist grundsätzlich strafbar.',
     bild:'https://upload.wikimedia.org/wikipedia/commons/3/3a/Italian_switchblade.jpg',
-    quellen:['waffg_anl','waffg']
+    quellen:['waffg_anl','waffg','bayern']
   },
   {
     id:'w-butterfly', kategorie:'waffe',
@@ -365,7 +366,7 @@ const DATA = [
     gesetz:'WaffG Anlage 2, Abschnitt 1 (verbotene Gegenstände)',
     begruendung:'Butterflymesser gehören zu den verbotenen Gegenständen nach dem Waffengesetz. Besitz und Führen sind grundsätzlich strafbar.',
     bild:'https://upload.wikimedia.org/wikipedia/commons/5/5c/Balisong-knife.jpg',
-    quellen:['waffg_anl','waffg']
+    quellen:['waffg_anl','waffg','bayern']
   },
   {
     id:'w-schreckschuss', kategorie:'waffe',
@@ -375,7 +376,7 @@ const DATA = [
     gesetz:'WaffG §§ 10, 53 (Führen ohne Kleinen Waffenschein)',
     begruendung:'Der Besitz zuhause ist ab 18 erlaubt. Das Führen in der Öffentlichkeit ohne „Kleinen Waffenschein“ ist eine Ordnungswidrigkeit (Bußgeld). Ohne PTB-Zulassung kann es jedoch strafbar sein.',
     bild:'https://upload.wikimedia.org/wikipedia/commons/8/8e/Walther_P99_pistol.jpg',
-    quellen:['waffg']
+    quellen:['waffg','bayern']
   },
   {
     id:'w-einhandmesser', kategorie:'waffe',
@@ -385,7 +386,7 @@ const DATA = [
     gesetz:'WaffG § 42a (Führungsverbot), § 53 (Bußgeld)',
     begruendung:'Besitz erlaubt. Das Führen von Einhandmessern oder feststehenden Messern mit Klinge über 12 cm in der Öffentlichkeit ist verboten (Ordnungswidrigkeit). Strengere Regeln in Waffenverbotszonen.',
     bild:'https://upload.wikimedia.org/wikipedia/commons/4/47/Pocket_knife.jpg',
-    quellen:['waffg']
+    quellen:['waffg','bayern']
   },
   {
     id:'w-schusswaffe', kategorie:'waffe',
@@ -395,7 +396,7 @@ const DATA = [
     gesetz:'WaffG §§ 2, 52 (Erwerb/Besitz ohne Erlaubnis)',
     begruendung:'Erwerb, Besitz oder Führen scharfer Schusswaffen ohne die erforderliche Erlaubnis (z. B. Waffenbesitzkarte) ist eine Straftat.',
     bild:'https://upload.wikimedia.org/wikipedia/commons/9/95/Glock_17_gen4.jpg',
-    quellen:['waffg']
+    quellen:['waffg','bayern']
   },
   {
     id:'w-pfefferspray', kategorie:'waffe',
@@ -405,7 +406,7 @@ const DATA = [
     gesetz:'WaffG (kein erlaubnispflichtiger Gegenstand bei Tierabwehr-Kennzeichnung)',
     begruendung:'Pfefferspray mit Kennzeichnung „zur Tierabwehr“ darf von Erwachsenen frei gekauft und mitgeführt werden. Reizstoffsprühgeräte mit Prüfzeichen sind ebenfalls erlaubt.',
     bild:'https://upload.wikimedia.org/wikipedia/commons/6/6a/Pepper_spray.jpg',
-    quellen:['waffg']
+    quellen:['waffg','bayern']
   },
 
   /* ---------------- DROGEN / BtMG ---------------- */
@@ -769,7 +770,7 @@ async function runAISuggest(){
    QUELLEN-SEITE + INIT
    ========================================================================= */
 function renderSources(){
-  const order = ['waffg','waffg_anl','btmg','kcang','amg','bfarm','zoll','identa'];
+  const order = ['waffg','waffg_anl','btmg','kcang','amg','bfarm','zoll','identa','bayern'];
   const box = document.getElementById('srclist');
   box.innerHTML = order.map(k=>{
     const s = QUELLEN[k];
