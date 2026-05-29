@@ -200,6 +200,34 @@
   .srclist a .meta{display:block;font-size:11.5px;color:var(--muted)}
   .tag{display:inline-block;font-size:10.5px;background:#eef2ff;color:#4338ca;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
   .sectiontitle{font-size:13px;font-weight:600;color:var(--muted);margin:16px 4px 4px;text-transform:uppercase;letter-spacing:.5px}
+
+  /* Photo gallery in detail */
+  .gallery{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px}
+  .gallery::-webkit-scrollbar{display:none}
+  .gallery .gimg{position:relative;flex:0 0 auto;width:88px;height:88px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#0f172a;cursor:zoom-in}
+  .gallery .gimg img{width:100%;height:100%;object-fit:cover;display:block}
+  .gallery .gimg .tagx{position:absolute;top:3px;left:3px;font-size:9px;background:rgba(0,0,0,.6);color:#fff;padding:1px 6px;border-radius:6px}
+  .gallery .gimg .del{position:absolute;top:3px;right:3px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(220,38,38,.92);color:#fff;font-size:11px;cursor:pointer;line-height:1}
+  .clickhint{font-size:11px;color:var(--muted);margin:-2px 2px 10px}
+
+  /* Lightbox */
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:80;display:none;align-items:center;justify-content:center;padding:20px}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:100%;max-height:90vh;border-radius:10px}
+  .lightbox .lbclose{position:absolute;top:16px;right:16px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;border:none;font-size:20px;cursor:pointer}
+
+  /* Upload / assign */
+  .warnbox{background:var(--rot-bg);border:1px solid var(--rot-line);color:#7f1d1d;border-radius:var(--radius);
+    padding:14px;margin-bottom:12px;font-size:13.5px;display:flex;gap:10px;align-items:flex-start;box-shadow:var(--shadow)}
+  .warnbox i{color:var(--rot);font-size:18px;margin-top:1px}
+  .uploadprev{width:100%;max-height:240px;object-fit:contain;border-radius:12px;background:#0f172a;display:none;margin-bottom:10px}
+  .panel select{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;font-family:inherit;font-size:14px;margin-bottom:10px;background:var(--card)}
+  .panel label.fld{font-size:12px;font-weight:600;color:var(--muted);display:block;margin:2px 2px 5px}
+  .myimg-row{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:8px}
+  .myimg-row img{width:54px;height:54px;border-radius:9px;object-fit:cover;cursor:zoom-in;flex:0 0 auto}
+  .myimg-row .info{flex:1;min-width:0;font-size:13px}
+  .myimg-row .info small{color:var(--muted)}
+  .myimg-row button{border:none;background:#fef2f2;color:var(--rot);border:1px solid var(--rot-line);border-radius:9px;padding:8px 10px;cursor:pointer;font-family:inherit;font-size:12px}
 </style>
 </head>
 <body>
@@ -284,6 +312,48 @@
     <div class="results" id="camResults"></div>
   </section>
 
+  <!-- HOCHLADEN / ZUORDNEN -->
+  <section id="view-upload" class="view">
+    <div class="warnbox">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <div><b>Bitte nur zu 100 % sichere Fotos verwenden!</b> Ordne ein Bild nur dann einer Waffe,
+      einem Betäubungsmittel oder einem Arzneimittel zu, wenn du dir absolut sicher bist.
+      Falsche Zuordnungen können zu gefährlichen Fehleinschätzungen führen. Die Fotos werden nur
+      lokal auf diesem Gerät gespeichert.</div>
+    </div>
+
+    <div class="panel">
+      <h3><i class="fa-solid fa-upload"></i> Eigenes Foto zuordnen</h3>
+
+      <label class="fld">1. Foto auswählen / aufnehmen</label>
+      <img id="upPrev" class="uploadprev" alt="Vorschau" />
+      <input id="upInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="onUploadPick(event)" />
+      <button class="btn primary" onclick="document.getElementById('upInput').click()">
+        <i class="fa-solid fa-camera"></i> Foto auswählen / aufnehmen
+      </button>
+
+      <label class="fld" style="margin-top:14px">2. Kategorie</label>
+      <select id="upCat" onchange="fillUploadEntries()">
+        <option value="waffe">Waffe (WaffG)</option>
+        <option value="btm">Betäubungsmittel / Droge (BtMG)</option>
+        <option value="arznei">Arzneimittel / Tablette (AMG)</option>
+      </select>
+
+      <label class="fld">3. Konkreten Eintrag wählen</label>
+      <select id="upEntry"></select>
+
+      <button class="btn primary" style="margin-top:12px" onclick="saveUploadAssign()">
+        <i class="fa-solid fa-link"></i> Foto diesem Eintrag zuordnen
+      </button>
+      <div class="ai-status" id="upStatus"></div>
+    </div>
+
+    <div class="panel">
+      <h3><i class="fa-solid fa-images"></i> Meine zugeordneten Fotos</h3>
+      <div id="myImgs"><small style="color:var(--muted)">Noch keine eigenen Fotos zugeordnet.</small></div>
+    </div>
+  </section>
+
   <!-- QUELLEN / INFO -->
   <section id="view-info" class="view">
     <div class="panel">
@@ -320,9 +390,16 @@
   <div class="sheet" id="sheet"></div>
 </div>
 
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lbclose" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button>
+  <img id="lightboxImg" alt="Foto groß" />
+</div>
+
 <nav class="bottom">
   <button id="nav-suche" class="active" onclick="go('suche',this)"><i class="fa-solid fa-magnifying-glass"></i>Suche</button>
   <button id="nav-kamera" onclick="go('kamera',this)"><i class="fa-solid fa-camera"></i>Kamera</button>
+  <button id="nav-upload" onclick="go('upload',this)"><i class="fa-solid fa-upload"></i>Hochladen</button>
   <button id="nav-info" onclick="go('info',this)"><i class="fa-solid fa-scale-balanced"></i>Quellen</button>
 </nav>
 
@@ -551,13 +628,42 @@ function matches(item, q){
   const hay = [item.name, item.wirkstoff, item.praegung, item.farbe, item.form, ...(item.synonyme||[])].map(norm).join(' ');
   return hay.includes(nq);
 }
-function thumbHTML(item){
-  if(item.bild){
-    return `<div class="thumb"><img src="${item.bild}" alt="" loading="lazy"
-      onerror="this.parentNode.innerHTML='<span class=&quot;ph&quot;><i class=\\'fa-solid ${ICON[item.kategorie]}\\'></i></span>'"></div>`;
-  }
-  return `<div class="thumb"><span class="ph"><i class="fa-solid ${ICON[item.kategorie]}"></i></span></div>`;
+/* ---------- Eigene Fotos (lokal) ---------- */
+function getUserImgs(){ try{ return JSON.parse(localStorage.getItem('ra_userimgs')||'{}'); }catch(e){ return {}; } }
+function saveUserImgs(o){ try{ localStorage.setItem('ra_userimgs', JSON.stringify(o)); }catch(e){ alert('Speicher voll – Foto konnte nicht gespeichert werden.'); } }
+function userImgsFor(id){ const o=getUserImgs(); return Array.isArray(o[id])?o[id]:[]; }
+
+/* ---------- Garantiert darstellbare Bildkachel (SVG, immer sichtbar) ---------- */
+const EMOJI = {waffe:'🔫', btm:'🧪', arznei:'💊'};
+const AMPEL_HEX = {rot:'#dc2626', gelb:'#d97706', gruen:'#16a34a'};
+function svgTile(item){
+  const c1 = AMPEL_HEX[item.ampel]||'#475569';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${c1}" stop-opacity="0.20"/><stop offset="1" stop-color="#0f172a" stop-opacity="0.10"/>
+    </linearGradient></defs>
+    <rect width="400" height="400" fill="#f1f5f9"/><rect width="400" height="400" fill="url(#g)"/>
+    <text x="200" y="215" font-size="170" text-anchor="middle" dominant-baseline="middle">${EMOJI[item.kategorie]||'❔'}</text>
+    <text x="200" y="350" font-size="22" fill="#64748b" text-anchor="middle" font-family="sans-serif">Symbolbild</text>
+  </svg>`;
+  return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
 }
+/* Bevorzugte Bildquelle: eigenes Foto › Referenz-URL › SVG-Kachel */
+function mainImg(item){ const u=userImgsFor(item.id); if(u.length) return u[0]; if(item.bild) return item.bild; return svgTile(item); }
+
+function thumbHTML(item){
+  const src = mainImg(item);
+  const fb = svgTile(item).replace(/"/g,'&quot;');
+  return `<div class="thumb"><img src="${src}" alt="" loading="lazy"
+    onerror="this.onerror=null;this.src='${fb}'"></div>`;
+}
+
+/* ---------- Lightbox ---------- */
+function openLightbox(src){
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
 function cardHTML(item){
   return `<div class="card" onclick="openDetail('${item.id}')">
     ${thumbHTML(item)}
@@ -592,11 +698,25 @@ function setCat(c, el){
 /* ---------- Detail ---------- */
 function openDetail(id){
   const it = DATA.find(d=>d.id===id); if(!it) return;
-  const heroImg = it.bild
-    ? `<img src="${it.bild}" alt="Vergleichsfoto"
-        onerror="this.parentNode.innerHTML='<div class=&quot;ph&quot;><i class=\\'fa-solid ${ICON[it.kategorie]}\\'></i></div>'+this.parentNode.querySelector('.close').outerHTML+this.parentNode.querySelector('.imgnote').outerHTML">
-       <span class="imgnote">Symbolbild – nur zum Vergleich</span>`
-    : `<div class="ph"><i class="fa-solid ${ICON[it.kategorie]}"></i></div><span class="imgnote">Kein Vergleichsfoto hinterlegt</span>`;
+  const fb = svgTile(it).replace(/"/g,'&quot;');
+  const heroSrc = mainImg(it);
+  const heroImg = `<img src="${heroSrc}" alt="Vergleichsfoto" style="cursor:zoom-in"
+        onerror="this.onerror=null;this.src='${fb}'"
+        onclick="openLightbox(this.src)">
+       <span class="imgnote">${userImgsFor(it.id).length?'Eigenes Foto – zum Vergrößern tippen':'Symbolbild – zum Vergleich, tippen zum Vergrößern'}</span>`;
+
+  // Galerie aus eigenen Fotos + (falls vorhanden) Referenzbild
+  const ui = userImgsFor(it.id);
+  let galleryImgs = ui.map((src,i)=>({src,label:'Eigenes Foto',idx:i}));
+  if(it.bild) galleryImgs.push({src:it.bild,label:'Referenz',idx:-1});
+  const galleryHTML = galleryImgs.length>1 ? `
+      <div class="sectiontitle">Fotos (zum Vergrößern tippen)</div>
+      <div class="gallery">${galleryImgs.map(g=>`
+        <div class="gimg" onclick="openLightbox('${g.src.replace(/'/g,"\\'")}')">
+          <img src="${g.src}" alt="" onerror="this.onerror=null;this.src='${fb}'">
+          <span class="tagx">${g.label}</span>
+          ${g.idx>=0?`<button class="del" onclick="event.stopPropagation();delUserImg('${it.id}',${g.idx});closeDetail();openDetail('${it.id}')"><i class="fa-solid fa-trash"></i></button>`:''}
+        </div>`).join('')}</div>` : '';
 
   const srcLinks = (it.quellen||[]).map(k=>{
     const s = QUELLEN[k]; if(!s) return '';
@@ -611,6 +731,7 @@ function openDetail(id){
     <div class="pad">
       <h2>${it.name}</h2>
       <div class="syn">${(it.synonyme&&it.synonyme.length)?('Auch: '+it.synonyme.join(', ')):'&nbsp;'}</div>
+      ${galleryHTML}
 
       <div class="ampel-big ${it.ampel}">
         <div class="ic"><i class="fa-solid ${AMPEL_ICON[it.ampel]}"></i></div>
@@ -767,6 +888,72 @@ async function runAISuggest(){
 }
 
 /* =========================================================================
+   HOCHLADEN / ZUORDNEN (eigene Fotos)
+   ========================================================================= */
+let uploadDataUrl = null;
+
+function onUploadPick(ev){
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    uploadDataUrl = e.target.result;
+    const img = document.getElementById('upPrev');
+    img.src = uploadDataUrl; img.style.display='block';
+    setUpStatus('Foto geladen. Kategorie und Eintrag wählen, dann zuordnen.','');
+  };
+  reader.readAsDataURL(file);
+}
+function setUpStatus(msg, cls){ const el=document.getElementById('upStatus'); el.textContent=msg; el.className='ai-status '+(cls||''); }
+
+function fillUploadEntries(){
+  const cat = document.getElementById('upCat').value;
+  const sel = document.getElementById('upEntry');
+  sel.innerHTML = DATA.filter(d=>d.kategorie===cat)
+    .map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+}
+
+function saveUploadAssign(){
+  if(!uploadDataUrl){ setUpStatus('Bitte zuerst ein Foto auswählen.','err'); return; }
+  const id = document.getElementById('upEntry').value;
+  if(!id){ setUpStatus('Bitte einen Eintrag wählen.','err'); return; }
+  const it = DATA.find(d=>d.id===id);
+  if(!confirm('Bist du dir 100% sicher, dass dieses Foto „'+it.name+'“ zeigt?\n\nNur sichere Fotos zuordnen.')) return;
+  const o = getUserImgs();
+  if(!Array.isArray(o[id])) o[id]=[];
+  o[id].push(uploadDataUrl);
+  saveUserImgs(o);
+  uploadDataUrl=null;
+  document.getElementById('upPrev').style.display='none';
+  document.getElementById('upInput').value='';
+  setUpStatus('✓ Foto „'+it.name+'“ zugeordnet. Es erscheint jetzt beim Eintrag.','');
+  renderMyImgs(); render();
+}
+
+function delUserImg(id, idx){
+  const o = getUserImgs();
+  if(Array.isArray(o[id])){ o[id].splice(idx,1); if(!o[id].length) delete o[id]; saveUserImgs(o); }
+  renderMyImgs(); render();
+}
+
+function renderMyImgs(){
+  const o = getUserImgs();
+  const box = document.getElementById('myImgs');
+  const rows = [];
+  Object.keys(o).forEach(id=>{
+    const it = DATA.find(d=>d.id===id); if(!it) return;
+    o[id].forEach((src,i)=>{
+      rows.push(`<div class="myimg-row">
+        <img src="${src}" alt="" onclick="openLightbox('${src.replace(/'/g,"\\'")}')">
+        <div class="info"><b>${it.name}</b><br><small>${AMPEL_TEXT[it.ampel]} · ${it.gesetz}</small></div>
+        <button onclick="delUserImg('${id}',${i})"><i class="fa-solid fa-trash"></i> Löschen</button>
+      </div>`);
+    });
+  });
+  box.innerHTML = rows.length ? rows.join('') : '<small style="color:var(--muted)">Noch keine eigenen Fotos zugeordnet.</small>';
+}
+
+/* =========================================================================
    QUELLEN-SEITE + INIT
    ========================================================================= */
 function renderSources(){
@@ -786,6 +973,8 @@ function init(){
   const k = getKey();
   if(k){ document.getElementById('apiKey').value=k; document.getElementById('keyState').textContent='Gespeichert ✓'; }
   renderSources();
+  fillUploadEntries();
+  renderMyImgs();
   render();
 }
 init();
