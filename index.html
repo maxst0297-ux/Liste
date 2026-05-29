@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#1f2937" />
+<title>RechtsAmpel – Rechtliche Einordnung (WaffG · BtMG · AMG)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<style>
+  :root{
+    --bg:#f3f4f6; --card:#ffffff; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb;
+    --brand:#1f2937; --brand2:#374151;
+    --rot:#dc2626; --rot-bg:#fef2f2; --rot-line:#fecaca;
+    --gelb:#d97706; --gelb-bg:#fffbeb; --gelb-line:#fde68a;
+    --gruen:#16a34a; --gruen-bg:#f0fdf4; --gruen-line:#bbf7d0;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+    --radius:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Poppins',system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.45;
+    padding-bottom:90px;
+    -webkit-text-size-adjust:100%;
+  }
+  a{color:#2563eb}
+  .wrap{max-width:760px;margin:0 auto;padding:0 14px}
+
+  /* Header */
+  header.app{
+    background:linear-gradient(135deg,var(--brand),var(--brand2));
+    color:#fff;padding:16px 0 14px;position:sticky;top:0;z-index:30;
+    box-shadow:var(--shadow);
+  }
+  header.app .wrap{display:flex;align-items:center;gap:12px}
+  .logo{
+    width:42px;height:42px;border-radius:12px;flex:0 0 auto;
+    background:#fff;display:grid;place-items:center;font-size:22px;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);
+  }
+  .logo .d1{color:var(--rot)} .logo .d2{color:var(--gelb)} .logo .d3{color:var(--gruen)}
+  header.app h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.2px}
+  header.app p{margin:1px 0 0;font-size:12px;opacity:.85}
+
+  /* Disclaimer */
+  .disclaimer{
+    background:#fff7ed;border:1px solid var(--gelb-line);color:#7c2d12;
+    border-radius:var(--radius);padding:12px 14px;margin:14px 0;font-size:13px;
+    display:flex;gap:10px;align-items:flex-start;box-shadow:var(--shadow);
+  }
+  .disclaimer i{color:var(--gelb);margin-top:2px}
+  .disclaimer.mini{font-size:11.5px;padding:8px 12px;margin:10px 0;background:#fff;border-color:var(--line);color:var(--muted)}
+  .disclaimer button{
+    margin-left:auto;border:none;background:var(--gelb);color:#fff;font-weight:600;
+    padding:7px 12px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12px;white-space:nowrap;
+  }
+
+  /* Search */
+  .searchbar{position:relative;margin:12px 0}
+  .searchbar i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .searchbar input{
+    width:100%;padding:14px 14px 14px 42px;border:1px solid var(--line);border-radius:14px;
+    font-family:inherit;font-size:15px;background:var(--card);box-shadow:var(--shadow);outline:none;
+  }
+  .searchbar input:focus{border-color:var(--brand2)}
+  .hint{font-size:12px;color:var(--muted);margin:-4px 4px 4px}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{
+    flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);
+    padding:9px 14px;border-radius:999px;font-family:inherit;font-size:13px;font-weight:500;
+    cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:center;
+  }
+  .tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+  /* Legend */
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+  .legend span{font-size:11.5px;display:flex;align-items:center;gap:6px;color:var(--muted)}
+  .dot{width:12px;height:12px;border-radius:50%}
+  .dot.rot{background:var(--rot)} .dot.gelb{background:var(--gelb)} .dot.gruen{background:var(--gruen)}
+
+  /* Cards list */
+  .results{display:grid;gap:10px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:12px;display:flex;gap:12px;align-items:center;cursor:pointer;
+    transition:transform .06s ease;
+  }
+  .card:active{transform:scale(.99)}
+  .thumb{
+    width:60px;height:60px;border-radius:12px;flex:0 0 auto;overflow:hidden;
+    background:#f1f5f9;display:grid;place-items:center;border:1px solid var(--line);
+  }
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .ph{font-size:24px;color:#94a3b8}
+  .card .body{flex:1;min-width:0}
+  .card .body h3{margin:0;font-size:15px;font-weight:600}
+  .card .body .sub{font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .badge{
+    flex:0 0 auto;font-size:11px;font-weight:600;padding:5px 9px;border-radius:999px;
+    display:flex;gap:5px;align-items:center;white-space:nowrap;
+  }
+  .badge.rot{background:var(--rot-bg);color:var(--rot);border:1px solid var(--rot-line)}
+  .badge.gelb{background:var(--gelb-bg);color:var(--gelb);border:1px solid var(--gelb-line)}
+  .badge.gruen{background:var(--gruen-bg);color:var(--gruen);border:1px solid var(--gruen-line)}
+
+  .empty{text-align:center;color:var(--muted);padding:40px 10px;font-size:14px}
+  .empty i{font-size:34px;display:block;margin-bottom:10px;opacity:.5}
+
+  .count{font-size:12px;color:var(--muted);margin:2px 4px 8px}
+
+  /* Bottom nav */
+  nav.bottom{
+    position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
+    display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom);
+  }
+  nav.bottom button{
+    flex:1;border:none;background:none;font-family:inherit;color:var(--muted);
+    padding:10px 4px;cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:center;font-size:11px;
+  }
+  nav.bottom button i{font-size:19px}
+  nav.bottom button.active{color:var(--brand)}
+
+  /* Views */
+  .view{display:none;padding-top:6px}
+  .view.active{display:block;animation:fade .2s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* Detail modal */
+  .modal{
+    position:fixed;inset:0;background:rgba(17,24,39,.55);z-index:60;display:none;
+    align-items:flex-end;justify-content:center;
+  }
+  .modal.open{display:flex}
+  .sheet{
+    background:var(--bg);width:100%;max-width:760px;max-height:92vh;overflow-y:auto;
+    border-radius:20px 20px 0 0;animation:up .25s ease;
+  }
+  @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+  .sheet .hero{position:relative;background:#0f172a}
+  .sheet .hero img{width:100%;max-height:280px;object-fit:cover;display:block}
+  .sheet .hero .ph{height:200px;display:grid;place-items:center;font-size:72px;color:#475569}
+  .sheet .hero .close{
+    position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;
+    background:rgba(0,0,0,.5);color:#fff;border:none;font-size:18px;cursor:pointer;
+  }
+  .sheet .hero .imgnote{position:absolute;bottom:8px;left:12px;font-size:10.5px;color:#cbd5e1;background:rgba(0,0,0,.45);padding:3px 8px;border-radius:8px}
+  .sheet .pad{padding:16px 16px 30px}
+  .sheet h2{margin:0 0 4px;font-size:21px}
+  .sheet .syn{font-size:13px;color:var(--muted);margin-bottom:14px}
+  .ampel-big{
+    border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;margin-bottom:14px;font-weight:600;
+  }
+  .ampel-big.rot{background:var(--rot-bg);color:var(--rot);border:1px solid var(--rot-line)}
+  .ampel-big.gelb{background:var(--gelb-bg);color:var(--gelb);border:1px solid var(--gelb-line)}
+  .ampel-big.gruen{background:var(--gruen-bg);color:var(--gruen);border:1px solid var(--gruen-line)}
+  .ampel-big .ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:22px;color:#fff;flex:0 0 auto}
+  .ampel-big.rot .ic{background:var(--rot)} .ampel-big.gelb .ic{background:var(--gelb)} .ampel-big.gruen .ic{background:var(--gruen)}
+  .ampel-big .t1{font-size:16px} .ampel-big .t2{font-size:12px;font-weight:500;opacity:.85}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+  .field .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:4px}
+  .field .val{font-size:14px}
+  .field .val.law{font-weight:600}
+  .sources a{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:11px 14px;margin-bottom:8px;text-decoration:none;color:var(--ink);font-size:13px}
+  .sources a i.ext{margin-left:auto;color:var(--muted)}
+  .sources a i.src{color:#2563eb}
+
+  /* Camera */
+  .cam-box{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);text-align:center;margin-bottom:12px}
+  .cam-preview{width:100%;border-radius:14px;margin-bottom:12px;display:none;max-height:320px;object-fit:contain;background:#0f172a}
+  .btn{
+    border:none;border-radius:12px;padding:13px 18px;font-family:inherit;font-size:15px;font-weight:600;
+    cursor:pointer;display:inline-flex;gap:9px;align-items:center;justify-content:center;
+  }
+  .btn.primary{background:var(--brand);color:#fff;width:100%}
+  .btn.ghost{background:#f1f5f9;color:var(--ink);width:100%;margin-top:8px}
+  .btn.sm{padding:9px 12px;font-size:13px}
+  .ai-status{font-size:13px;color:var(--muted);margin:10px 0;min-height:18px}
+  .ai-status.work{color:var(--brand)}
+  .ai-status.err{color:var(--rot)}
+  .filterrow{display:flex;gap:8px;margin:10px 0}
+  .filterrow input{flex:1;padding:11px;border:1px solid var(--line);border-radius:11px;font-family:inherit;font-size:14px}
+
+  /* Settings / Info */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
+  .panel h3{margin:0 0 10px;font-size:16px;display:flex;gap:8px;align-items:center}
+  .panel p{font-size:13.5px;color:var(--ink);margin:0 0 10px}
+  .panel small{color:var(--muted)}
+  .panel input[type=password],.panel input[type=text]{width:100%;padding:11px;border:1px solid var(--line);border-radius:11px;font-family:inherit;font-size:14px;margin-bottom:8px}
+  .srclist a{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:14px}
+  .srclist a:last-child{border-bottom:none}
+  .srclist a i.ext{margin-left:auto;color:var(--muted)}
+  .srclist a .meta{display:block;font-size:11.5px;color:var(--muted)}
+  .tag{display:inline-block;font-size:10.5px;background:#eef2ff;color:#4338ca;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  .sectiontitle{font-size:13px;font-weight:600;color:var(--muted);margin:16px 4px 4px;text-transform:uppercase;letter-spacing:.5px}
+
+  /* Photo gallery in detail */
+  .gallery{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px}
+  .gallery::-webkit-scrollbar{display:none}
+  .gallery .gimg{position:relative;flex:0 0 auto;width:88px;height:88px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#0f172a;cursor:zoom-in}
+  .gallery .gimg img{width:100%;height:100%;object-fit:cover;display:block}
+  .gallery .gimg .tagx{position:absolute;top:3px;left:3px;font-size:9px;background:rgba(0,0,0,.6);color:#fff;padding:1px 6px;border-radius:6px}
+  .gallery .gimg .del{position:absolute;top:3px;right:3px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(220,38,38,.92);color:#fff;font-size:11px;cursor:pointer;line-height:1}
+  .clickhint{font-size:11px;color:var(--muted);margin:-2px 2px 10px}
+
+  /* Lightbox */
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:80;display:none;align-items:center;justify-content:center;padding:20px}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:100%;max-height:90vh;border-radius:10px}
+  .lightbox .lbclose{position:absolute;top:16px;right:16px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;border:none;font-size:20px;cursor:pointer}
+
+  /* Upload / assign */
+  .warnbox{background:var(--rot-bg);border:1px solid var(--rot-line);color:#7f1d1d;border-radius:var(--radius);
+    padding:14px;margin-bottom:12px;font-size:13.5px;display:flex;gap:10px;align-items:flex-start;box-shadow:var(--shadow)}
+  .warnbox i{color:var(--rot);font-size:18px;margin-top:1px}
+  .uploadprev{width:100%;max-height:240px;object-fit:contain;border-radius:12px;background:#0f172a;display:none;margin-bottom:10px}
+  .panel select{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;font-family:inherit;font-size:14px;margin-bottom:10px;background:var(--card)}
+  .panel label.fld{font-size:12px;font-weight:600;color:var(--muted);display:block;margin:2px 2px 5px}
+  .myimg-row{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:8px}
+  .myimg-row img{width:54px;height:54px;border-radius:9px;object-fit:cover;cursor:zoom-in;flex:0 0 auto}
+  .myimg-row .info{flex:1;min-width:0;font-size:13px}
+  .myimg-row .info small{color:var(--muted)}
+  .myimg-row button{border:none;background:#fef2f2;color:var(--rot);border:1px solid var(--rot-line);border-radius:9px;padding:8px 10px;cursor:pointer;font-family:inherit;font-size:12px}
+
+  /* KI-Anbieterwahl */
+  .provrow{display:flex;gap:8px;margin:12px 0 8px}
+  .provbtn{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;
+    padding:10px 6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;
+    flex-direction:column;gap:4px;align-items:center}
+  .provbtn i{font-size:18px}
+  .provbtn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .provlinks{display:none;gap:8px;margin:8px 0;flex-wrap:wrap}
+  .provlinks a{flex:1;min-width:120px;text-align:center;text-decoration:none;background:#eef2ff;color:#4338ca;
+    border:1px solid #c7d2fe;border-radius:11px;padding:10px;font-size:13px;font-weight:600}
+
+  /* Lupen-Intro (Splash) */
+  #splash{position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,#1f2937,#374151);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    transition:opacity .5s ease;color:#fff}
+  #splash.hide{opacity:0;pointer-events:none}
+  #splash .scene{position:relative;width:240px;height:90px;display:flex;align-items:center;justify-content:space-around;font-size:46px}
+  #splash .scene .lupe{position:absolute;top:6px;left:0;font-size:52px;animation:fly 1.7s ease-in-out forwards}
+  #splash .stitle{font-size:26px;font-weight:700;letter-spacing:.5px;opacity:0;animation:pop .5s ease .7s forwards}
+  #splash .ssub{font-size:13px;opacity:0;animation:pop .5s ease 1s forwards}
+  @keyframes fly{
+    0%{left:-10px;top:30px;transform:scale(.7) rotate(-15deg)}
+    35%{left:90px;top:-4px;transform:scale(1.15) rotate(5deg)}
+    65%{left:165px;top:30px;transform:scale(1) rotate(-8deg)}
+    100%{left:200px;top:6px;transform:scale(1.1) rotate(0)}
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    #splash .scene .lupe,#splash .stitle,#splash .ssub{animation:none;opacity:1;left:200px;top:6px}
+  }
+</style>
+</head>
+<body>
+
+<!-- LUPEN-INTRO -->
+<div id="splash">
+  <div class="scene">
+    <span>💊</span><span>🔫</span><span>🧪</span>
+    <span class="lupe">🔍</span>
+  </div>
+  <div class="stitle">RechtsAmpel</div>
+  <div class="ssub">Schnell rechtlich einordnen…</div>
+</div>
+
+<header class="app">
+  <div class="wrap">
+    <div class="logo"><span class="d1">●</span><span class="d2">●</span><span class="d3">●</span></div>
+    <div>
+      <h1>RechtsAmpel</h1>
+      <p>Waffen · Betäubungsmittel · Arzneimittel – schnell eingeordnet</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- SUCHE / LISTE -->
+  <section id="view-suche" class="view active">
+    <div id="disclaimer" class="disclaimer">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <div><b>Keine Rechtsberatung.</b> Diese App gibt nur eine grobe Orientierung und übernimmt
+      keine Gewähr für Richtigkeit oder Aktualität. Die Rechtslage kann sich ändern. Im Zweifel
+      Polizei, Behörden oder Anwalt fragen.</div>
+      <button onclick="dismissDisclaimer()">Verstanden</button>
+    </div>
+
+    <div class="searchbar">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input id="search" type="search" inputmode="search" autocomplete="off"
+        placeholder="Name, Wirkstoff oder Prägung (z. B. „T 50“, „Diazepam“)…" oninput="render()" />
+    </div>
+    <div class="hint">Tipp: Tablettenprägung (Zahlen/Buchstaben) direkt eintippen, z. B. <b>52|10</b> oder <b>AL</b>.</div>
+
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-cat="alle" onclick="setCat('alle',this)"><i class="fa-solid fa-layer-group"></i> Alle</button>
+      <button class="tab" data-cat="waffe" onclick="setCat('waffe',this)"><i class="fa-solid fa-gun"></i> Waffen</button>
+      <button class="tab" data-cat="btm" onclick="setCat('btm',this)"><i class="fa-solid fa-cannabis"></i> Drogen/BtM</button>
+      <button class="tab" data-cat="arznei" onclick="setCat('arznei',this)"><i class="fa-solid fa-pills"></i> Tabletten</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot rot"></span> Rot = Straftat</span>
+      <span><span class="dot gelb"></span> Gelb = Ordnungswidrigkeit</span>
+      <span><span class="dot gruen"></span> Grün = legal / erlaubt</span>
+    </div>
+
+    <div class="count" id="count"></div>
+    <div class="results" id="results"></div>
+  </section>
+
+  <!-- KAMERA -->
+  <section id="view-kamera" class="view">
+    <div class="disclaimer mini">
+      <i class="fa-solid fa-camera"></i>
+      <div>Foto aufnehmen → die App (optional mit KI) schlägt <b>ähnliche Einträge</b> vor.
+      <b>Du vergleichst selbst</b> mit den Vergleichsfotos und wählst den passenden aus.
+      Vorschläge sind unverbindlich und können falsch sein.</div>
+    </div>
+
+    <div class="cam-box">
+      <img id="camPreview" class="cam-preview" alt="Aufgenommenes Foto" />
+      <input id="camInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="onPhoto(event)" />
+      <button class="btn primary" onclick="document.getElementById('camInput').click()">
+        <i class="fa-solid fa-camera"></i> Foto aufnehmen / wählen
+      </button>
+
+      <div style="text-align:left;margin-top:14px">
+        <label class="fld" style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin:2px 2px 5px">KI auswählen</label>
+        <div class="provrow">
+          <button class="provbtn active" id="prov-chatgpt" onclick="setProvider('chatgpt')"><i class="fa-solid fa-comment-dots"></i>ChatGPT</button>
+          <button class="provbtn" id="prov-gemini" onclick="setProvider('gemini')"><i class="fa-solid fa-gem"></i>Gemini</button>
+          <button class="provbtn" id="prov-claude" onclick="setProvider('claude')"><i class="fa-solid fa-robot"></i>Claude</button>
+        </div>
+      </div>
+      <button class="btn primary" id="shareBtn" onclick="shareToAI()" style="display:none;margin-top:8px">
+        <i class="fa-solid fa-share-from-square"></i> Foto mit KI prüfen (teilen)
+      </button>
+      <div class="provlinks" id="provLinks"></div>
+      <button class="btn ghost" id="aiBtn" onclick="runAISuggest()" style="display:none">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Per API-Schlüssel automatisch (optional)
+      </button>
+      <div class="ai-status" id="aiStatus"></div>
+
+      <div class="filterrow">
+        <input id="fFarbe" placeholder="Farbe (z. B. weiß)" oninput="manualSuggest()" />
+        <input id="fForm" placeholder="Form (z. B. rund)" oninput="manualSuggest()" />
+      </div>
+      <div class="filterrow" style="margin-top:0">
+        <input id="fPraeg" placeholder="Prägung / Aufschrift" oninput="manualSuggest()" />
+      </div>
+      <small style="color:var(--muted)">Ohne KI-Schlüssel: Merkmale eintippen, um Vorschläge einzugrenzen.</small>
+    </div>
+
+    <div class="count" id="camCount"></div>
+    <div class="results" id="camResults"></div>
+  </section>
+
+  <!-- HOCHLADEN / ZUORDNEN -->
+  <section id="view-upload" class="view">
+    <div class="warnbox">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <div><b>Bitte nur zu 100 % sichere Fotos verwenden!</b> Ordne ein Bild nur dann einer Waffe,
+      einem Betäubungsmittel oder einem Arzneimittel zu, wenn du dir absolut sicher bist.
+      Falsche Zuordnungen können zu gefährlichen Fehleinschätzungen führen. Die Fotos werden nur
+      lokal auf diesem Gerät gespeichert.</div>
+    </div>
+
+    <div class="panel">
+      <h3><i class="fa-solid fa-upload"></i> Eigenes Foto zuordnen</h3>
+
+      <label class="fld">1. Foto auswählen / aufnehmen</label>
+      <img id="upPrev" class="uploadprev" alt="Vorschau" />
+      <input id="upInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="onUploadPick(event)" />
+      <button class="btn primary" onclick="document.getElementById('upInput').click()">
+        <i class="fa-solid fa-camera"></i> Foto auswählen / aufnehmen
+      </button>
+
+      <label class="fld" style="margin-top:14px">2. Kategorie</label>
+      <select id="upCat" onchange="fillUploadEntries()">
+        <option value="waffe">Waffe (WaffG)</option>
+        <option value="btm">Betäubungsmittel / Droge (BtMG)</option>
+        <option value="arznei">Arzneimittel / Tablette (AMG)</option>
+      </select>
+
+      <label class="fld">3. Konkreten Eintrag wählen</label>
+      <select id="upEntry"></select>
+
+      <button class="btn primary" style="margin-top:12px" onclick="saveUploadAssign()">
+        <i class="fa-solid fa-link"></i> Foto diesem Eintrag zuordnen
+      </button>
+      <div class="ai-status" id="upStatus"></div>
+    </div>
+
+    <div class="panel">
+      <h3><i class="fa-solid fa-images"></i> Meine zugeordneten Fotos</h3>
+      <div id="myImgs"><small style="color:var(--muted)">Noch keine eigenen Fotos zugeordnet.</small></div>
+    </div>
+  </section>
+
+  <!-- QUELLEN / INFO -->
+  <section id="view-info" class="view">
+    <div class="panel">
+      <h3><i class="fa-solid fa-scale-balanced"></i> Vertrauenswürdige Quellen</h3>
+      <p>Maßgeblich ist immer der amtliche Gesetzestext, nicht diese App. Diese Stellen gelten als verlässlich:</p>
+      <div class="srclist" id="srclist"></div>
+    </div>
+
+    <div class="panel">
+      <h3><i class="fa-solid fa-robot"></i> KI-Bilderkennung (optional)</h3>
+      <p>Für KI-gestützte Foto-Vorschläge kannst du einen Anthropic-API-Schlüssel hinterlegen.
+      Er wird <b>nur lokal auf diesem Gerät</b> gespeichert (localStorage) und ausschließlich an die
+      Anthropic-API gesendet. Ohne Schlüssel funktioniert die App weiter über die Merkmals-Suche.</p>
+      <input id="apiKey" type="password" placeholder="sk-ant-… (optional)" />
+      <button class="btn primary sm" style="width:auto" onclick="saveKey()"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
+      <span id="keyState" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
+    </div>
+
+    <div class="panel">
+      <h3><i class="fa-solid fa-circle-info"></i> Über &amp; Haftung</h3>
+      <p><b>RechtsAmpel</b> ist ein Orientierungs-Werkzeug für die grobe rechtliche Einordnung
+      nach <b>Waffengesetz (WaffG)</b>, <b>Betäubungsmittelgesetz (BtMG)</b> und
+      <b>Arzneimittelgesetz (AMG)</b>.</p>
+      <p><small>Die Einstufungen sind vereinfacht und im Zweifel konservativ. Die konkrete
+      Strafbarkeit hängt stark vom Einzelfall ab (Menge, Erlaubnis, Ort, Absicht, Alter usw.).
+      Keine Gewähr, keine Rechtsberatung. Vergleichsfotos sind Symbolbilder.</small></p>
+    </div>
+  </section>
+
+</main>
+
+<!-- DETAIL -->
+<div class="modal" id="modal" onclick="if(event.target===this)closeDetail()">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lbclose" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button>
+  <img id="lightboxImg" alt="Foto groß" />
+</div>
+
+<nav class="bottom">
+  <button id="nav-suche" class="active" onclick="go('suche',this)"><i class="fa-solid fa-magnifying-glass"></i>Suche</button>
+  <button id="nav-kamera" onclick="go('kamera',this)"><i class="fa-solid fa-camera"></i>Kamera</button>
+  <button id="nav-upload" onclick="go('upload',this)"><i class="fa-solid fa-upload"></i>Hochladen</button>
+  <button id="nav-info" onclick="go('info',this)"><i class="fa-solid fa-scale-balanced"></i>Quellen</button>
+</nav>
+
+<script>
+/* =========================================================================
+   QUELLEN (vertrauenswürdig, amtlich / fachlich)
+   ========================================================================= */
+const QUELLEN = {
+  waffg:   {titel:'Waffengesetz (WaffG) – amtlich', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/waffg_2002/'},
+  waffg_anl:{titel:'WaffG Anlage 2 (verbotene Waffen)', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/waffg_2002/anlage_2.html'},
+  btmg:    {titel:'Betäubungsmittelgesetz (BtMG) – amtlich', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/btmg_1981/'},
+  bfarm:   {titel:'BfArM – Bundesopiumstelle / Betäubungsmittel', meta:'bfarm.de', url:'https://www.bfarm.de/DE/Bundesopiumstelle/Betaeubungsmittel/_node.html'},
+  zoll:    {titel:'Zoll – Betäubungsmittelrecht', meta:'zoll.de', url:'https://www.zoll.de/DE/Fachthemen/Verbote-Beschraenkungen/Schutz-der-menschlichen-Gesundheit/Betaeubungsmittel/Allgemeines-Betaeubungsmittelrecht/allgemeines-betaeubungsmittelrecht_node.html'},
+  amg:     {titel:'Arzneimittelgesetz (AMG) – amtlich', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/amg_1976/'},
+  kcang:   {titel:'Konsumcannabisgesetz (KCanG) – amtlich', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/kcang/'},
+  identa:  {titel:'Gelbe Liste Identa – Tabletten identifizieren', meta:'gelbe-liste.de', url:'https://www.gelbe-liste.de/identa'},
+  bayern:  {titel:'Gesetze Bayern (BAYERN.RECHT) – Bundes- & Landesrecht', meta:'gesetze-bayern.de', url:'https://www.gesetze-bayern.de/'}
+};
+
+/* =========================================================================
+   STARTER-DATENSATZ (kuratiert, Beispiel-/Symboldaten – erweiterbar)
+   ampel: 'rot' = Straftat | 'gelb' = Ordnungswidrigkeit | 'gruen' = legal/erlaubt
+   ========================================================================= */
+const DATA = [
+  /* ---------------- WAFFEN (WaffG) ---------------- */
+  {
+    id:'w-springmesser', kategorie:'waffe',
+    name:'Spring-/Fallmesser (verbotene Bauart)', synonyme:['Switchblade','automatik messer','OTF'],
+    wirkstoff:'', praegung:'', farbe:'metallic', form:'klappmesser',
+    ampel:'rot', einstufung:'Straftat',
+    gesetz:'WaffG Anlage 2, Abschnitt 1 (verbotene Gegenstände)',
+    begruendung:'Springmesser bestimmter Bauart und Fallmesser zählen zu den verbotenen Gegenständen. Umgang/Besitz ist grundsätzlich strafbar.',
+    bild:'https://upload.wikimedia.org/wikipedia/commons/3/3a/Italian_switchblade.jpg',
+    quellen:['waffg_anl','waffg','bayern']
+  },
+  {
+    id:'w-butterfly', kategorie:'waffe',
+    name:'Butterflymesser (Balisong)', synonyme:['balisong','schmetterlingsmesser'],
+    wirkstoff:'', praegung:'', farbe:'metallic', form:'klappmesser',
+    ampel:'rot', einstufung:'Straftat',
+    gesetz:'WaffG Anlage 2, Abschnitt 1 (verbotene Gegenstände)',
+    begruendung:'Butterflymesser gehören zu den verbotenen Gegenständen nach dem Waffengesetz. Besitz und Führen sind grundsätzlich strafbar.',
+    bild:'https://upload.wikimedia.org/wikipedia/commons/5/5c/Balisong-knife.jpg',
+    quellen:['waffg_anl','waffg','bayern']
+  },
+  {
+    id:'w-schreckschuss', kategorie:'waffe',
+    name:'Schreckschuss-/Gaspistole (führen ohne Kleinen Waffenschein)', synonyme:['srs','gaswaffe','platzpatrone','ppk gas'],
+    wirkstoff:'', praegung:'', farbe:'schwarz', form:'pistole',
+    ampel:'gelb', einstufung:'Ordnungswidrigkeit',
+    gesetz:'WaffG §§ 10, 53 (Führen ohne Kleinen Waffenschein)',
+    begruendung:'Der Besitz zuhause ist ab 18 erlaubt. Das Führen in der Öffentlichkeit ohne „Kleinen Waffenschein“ ist eine Ordnungswidrigkeit (Bußgeld). Ohne PTB-Zulassung kann es jedoch strafbar sein.',
+    bild:'https://upload.wikimedia.org/wikipedia/commons/8/8e/Walther_P99_pistol.jpg',
+    quellen:['waffg','bayern']
+  },
+  {
+    id:'w-einhandmesser', kategorie:'waffe',
+    name:'Einhandmesser / feststehendes Messer >12 cm (führen)', synonyme:['einhand','klappmesser','feststehend','tactical'],
+    wirkstoff:'', praegung:'', farbe:'metallic', form:'messer',
+    ampel:'gelb', einstufung:'Ordnungswidrigkeit',
+    gesetz:'WaffG § 42a (Führungsverbot), § 53 (Bußgeld)',
+    begruendung:'Besitz erlaubt. Das Führen von Einhandmessern oder feststehenden Messern mit Klinge über 12 cm in der Öffentlichkeit ist verboten (Ordnungswidrigkeit). Strengere Regeln in Waffenverbotszonen.',
+    bild:'https://upload.wikimedia.org/wikipedia/commons/4/47/Pocket_knife.jpg',
+    quellen:['waffg','bayern']
+  },
+  {
+    id:'w-schusswaffe', kategorie:'waffe',
+    name:'Scharfe Schusswaffe ohne Erlaubnis', synonyme:['pistole','revolver','gewehr','feuerwaffe'],
+    wirkstoff:'', praegung:'', farbe:'schwarz', form:'pistole',
+    ampel:'rot', einstufung:'Straftat',
+    gesetz:'WaffG §§ 2, 52 (Erwerb/Besitz ohne Erlaubnis)',
+    begruendung:'Erwerb, Besitz oder Führen scharfer Schusswaffen ohne die erforderliche Erlaubnis (z. B. Waffenbesitzkarte) ist eine Straftat.',
+    bild:'https://upload.wikimedia.org/wikipedia/commons/9/95/Glock_17_gen4.jpg',
+    quellen:['waffg','bayern']
+  },
+  {
+    id:'w-pfefferspray', kategorie:'waffe',
+    name:'Pfefferspray (Tierabwehr)', synonyme:['ko spray','reizgas','tierabwehrspray','OC'],
+    wirkstoff:'', praegung:'', farbe:'dose', form:'spraydose',
+    ampel:'gruen', einstufung:'Legal/erlaubt',
+    gesetz:'WaffG (kein erlaubnispflichtiger Gegenstand bei Tierabwehr-Kennzeichnung)',
+    begruendung:'Pfefferspray mit Kennzeichnung „zur Tierabwehr“ darf von Erwachsenen frei gekauft und mitgeführt werden. Reizstoffsprühgeräte mit Prüfzeichen sind ebenfalls erlaubt.',
+    bild:'https://upload.wikimedia.org/wikipedia/commons/6/6a/Pepper_spray.jpg',
+    quellen:['waffg','bayern']
+  },
+
+  /* ---------------- DROGEN / BtMG ---------------- */
+  {
+    id:'d-heroin', kategorie:'btm',
+    name:'Heroin', synonyme:['diamorphin','diacetylmorphin','h','smack'],
+    wirkstoff:'Diamorphin', praegung:'', farbe:'braun/weiß', form:'pulver',
+    ampel:'rot', einstufung:'Straftat',
+    gesetz:'BtMG Anlage I (nicht verkehrsfähig), § 29',
+    begruendung:'Heroin ist ein nicht verkehrsfähiges Betäubungsmittel. Besitz, Erwerb und Handel sind strafbar.',
+    bild:'',
+    quellen:['btmg','bfarm']
+  },
+  {
+    id:'d-kokain', kategorie:'btm',
+    name:'Kokain', synonyme:['coke','koks','crack','benzoylmethylecgonin'],
+    wirkstoff:'Cocain', praegung:'', farbe:'weiß', form:'pulver/kristall',
+    ampel:'rot', einstufung:'Straftat',
+    gesetz:'BtMG Anlage II/III-Bezug, Straßenhandel nach § 29',
+    begruendung:'Kokain unterliegt dem BtMG. Besitz und Erwerb zum Konsum ohne Erlaubnis sind strafbar.',
+    bild:'',
+    quellen:['btmg','bfarm']
+  },
+  {
+    id:'d-mdma', kategorie:'btm',
+    name:'MDMA / Ecstasy', synonyme:['xtc','ecstasy','molly','e','pille','emma'],
+    wirkstoff:'MDMA', praegung:'logo/symbol', farbe:'bunt', form:'tablette/kristall',
+    ampel:'rot', einstufung:'Straftat',
+    gesetz:'BtMG Anlage I, § 29',
+    begruendung:'MDMA ist ein nicht verkehrsfähiges Betäubungsmittel. Besitz und Erwerb sind strafbar. Ecstasy-Tabletten tragen oft Logos/Prägungen.',
+    bild:'',
+    quellen:['btmg','bfarm']
+  },
+  {
+    id:'d-amphetamin', kategorie:'btm',
+    name:'Amphetamin (Speed)', synonyme:['speed','pep','amph','paste'],
+    wirkstoff:'Amphetamin', praegung:'', farbe:'weiß/beige', form:'pulver/paste',
+    ampel:'rot', einstufung:'Straftat',
+    gesetz:'BtMG Anlage II/III, illegaler Besitz nach § 29',
+    begruendung:'Amphetamin unterliegt dem BtMG. Besitz ohne Erlaubnis/Verschreibung ist strafbar.',
+    bild:'',
+    quellen:['btmg','bfarm']
+  },
+  {
+    id:'d-cannabis', kategorie:'btm',
+    name:'Cannabis (Marihuana/Haschisch)', synonyme:['weed','gras','marihuana','haschisch','thc','dope'],
+    wirkstoff:'THC', praegung:'', farbe:'grün/braun', form:'blüte/harz',
+    ampel:'gelb', einstufung:'Teilweise erlaubt – Grenzen beachten',
+    gesetz:'Konsumcannabisgesetz (KCanG) seit 2024; bei Überschreitung straf-/bußgeldbewehrt',
+    begruendung:'Seit 2024 ist Cannabis für Erwachsene in engen Grenzen erlaubt (begrenzte Besitzmenge, Eigenanbau, Konsumregeln). Bei Überschreitung der Mengen, Abgabe an Minderjährige oder Konsum an verbotenen Orten drohen Bußgeld oder Strafe. Die genaue Lage ist komplex – Quellen prüfen.',
+    bild:'',
+    quellen:['kcang','btmg']
+  },
+  {
+    id:'d-lsd', kategorie:'btm',
+    name:'LSD', synonyme:['acid','pappe','trip','lyserg'],
+    wirkstoff:'Lysergsäurediethylamid', praegung:'motiv', farbe:'papier', form:'blotter/pappe',
+    ampel:'rot', einstufung:'Straftat',
+    gesetz:'BtMG Anlage I, § 29',
+    begruendung:'LSD ist ein nicht verkehrsfähiges Betäubungsmittel. Besitz und Erwerb sind strafbar.',
+    bild:'',
+    quellen:['btmg','bfarm']
+  },
+
+  /* ---------------- TABLETTEN / ARZNEI (AMG / BtMG) ---------------- */
+  {
+    id:'a-diazepam', kategorie:'arznei',
+    name:'Diazepam (z. B. Valium)', synonyme:['valium','benzo','benzodiazepin','dia'],
+    wirkstoff:'Diazepam', praegung:'z. B. „10“ / Hersteller-Code', farbe:'weiß/gelb/blau', form:'rund, oft mit Bruchrille',
+    ampel:'gelb', einstufung:'Verschreibungspflichtig – Besitz ohne Rezept problematisch',
+    gesetz:'AMG (Verschreibungspflicht); höhere Mengen ggf. BtMG-relevant',
+    begruendung:'Benzodiazepin, verschreibungspflichtig. Mit ärztlichem Rezept legal. Besitz ohne Rezept bzw. größere Mengen können straf-/ordnungsrechtlich relevant sein. Über die Prägung in Gelbe Liste Identa identifizierbar.',
+    bild:'',
+    quellen:['amg','identa']
+  },
+  {
+    id:'a-lorazepam', kategorie:'arznei',
+    name:'Lorazepam (z. B. Tavor)', synonyme:['tavor','benzo','expidet'],
+    wirkstoff:'Lorazepam', praegung:'„1,0“ / „2,5“', farbe:'weiß', form:'rund/oval',
+    ampel:'gelb', einstufung:'Verschreibungspflichtig – Besitz ohne Rezept problematisch',
+    gesetz:'AMG (Verschreibungspflicht)',
+    begruendung:'Benzodiazepin, verschreibungspflichtig. Mit Rezept legal; ohne Rezept rechtlich problematisch. Prägung über Gelbe Liste Identa abgleichbar.',
+    bild:'',
+    quellen:['amg','identa']
+  },
+  {
+    id:'a-oxycodon', kategorie:'arznei',
+    name:'Oxycodon (Opioid-Schmerzmittel)', synonyme:['oxy','oxygesic','oxycontin','opioid'],
+    wirkstoff:'Oxycodon', praegung:'Dosis-Zahl', farbe:'div.', form:'rund/oval',
+    ampel:'rot', einstufung:'BtM-pflichtig – ohne BtM-Rezept Straftat',
+    gesetz:'BtMG Anlage III (verschreibungsfähig); ohne BtM-Rezept § 29',
+    begruendung:'Starkes Opioid, fällt unter das BtMG (Anlage III). Nur mit speziellem BtM-Rezept legal. Besitz ohne gültige Verschreibung ist strafbar.',
+    bild:'',
+    quellen:['btmg','amg']
+  },
+  {
+    id:'a-tramadol', kategorie:'arznei',
+    name:'Tramadol', synonyme:['tramal','tilidin?','opioid schwach'],
+    wirkstoff:'Tramadol', praegung:'„T“ / Dosis', farbe:'weiß/gelb', form:'kapsel/tablette',
+    ampel:'gelb', einstufung:'Verschreibungspflichtig (kein BtM) – ohne Rezept problematisch',
+    gesetz:'AMG (Verschreibungspflicht, nicht BtMG)',
+    begruendung:'Schwaches Opioid, verschreibungspflichtig, aber (anders als Tilidin/Tramadol-Kombis in bestimmten Formen) i. d. R. nicht BtM-pflichtig. Mit Rezept legal.',
+    bild:'',
+    quellen:['amg','identa']
+  },
+  {
+    id:'a-ibuprofen', kategorie:'arznei',
+    name:'Ibuprofen (400/600/800)', synonyme:['ibu','nurofen','dolormin','schmerztablette'],
+    wirkstoff:'Ibuprofen', praegung:'„IBU 400“, „600“', farbe:'weiß', form:'länglich/rund',
+    ampel:'gruen', einstufung:'Legal (rezeptfrei bis 400 mg)',
+    gesetz:'AMG (apothekenpflichtig; 400 mg rezeptfrei, 600/800 mg verschreibungspflichtig)',
+    begruendung:'Gängiges Schmerzmittel. Bis 400 mg rezeptfrei in der Apotheke erhältlich; höhere Dosierungen sind verschreibungspflichtig, aber legal mit Rezept.',
+    bild:'',
+    quellen:['amg','identa']
+  },
+  {
+    id:'a-ass', kategorie:'arznei',
+    name:'ASS / Aspirin', synonyme:['aspirin','acetylsalicylsäure','ass 100','ass 500'],
+    wirkstoff:'Acetylsalicylsäure', praegung:'„ASS 500“, Bayer-Kreuz', farbe:'weiß', form:'rund',
+    ampel:'gruen', einstufung:'Legal (frei verkäuflich)',
+    gesetz:'AMG (frei verkäuflich / apothekenpflichtig je nach Packung)',
+    begruendung:'Klassisches Schmerz-/Fiebermittel, frei bzw. apothekenpflichtig erhältlich. Legal.',
+    bild:'',
+    quellen:['amg','identa']
+  }
+];
+
+/* =========================================================================
+   ICON / FALLBACK je Kategorie
+   ========================================================================= */
+const ICON = {waffe:'fa-gun', btm:'fa-cannabis', arznei:'fa-pills'};
+const AMPEL_TEXT = {rot:'Straftat', gelb:'Ordnungswidrigkeit / Grenzfall', gruen:'Legal / erlaubt'};
+const AMPEL_ICON = {rot:'fa-ban', gelb:'fa-triangle-exclamation', gruen:'fa-circle-check'};
+
+let CAT = 'alle';
+
+/* ---------- Helpers ---------- */
+function norm(s){return (s||'').toString().toLowerCase().replace(/[\s\|\-_.]/g,'');}
+function matches(item, q){
+  if(!q) return true;
+  const nq = norm(q);
+  const hay = [item.name, item.wirkstoff, item.praegung, item.farbe, item.form, ...(item.synonyme||[])].map(norm).join(' ');
+  return hay.includes(nq);
+}
+/* ---------- Eigene Fotos (lokal) ---------- */
+function getUserImgs(){ try{ return JSON.parse(localStorage.getItem('ra_userimgs')||'{}'); }catch(e){ return {}; } }
+function saveUserImgs(o){ try{ localStorage.setItem('ra_userimgs', JSON.stringify(o)); }catch(e){ alert('Speicher voll – Foto konnte nicht gespeichert werden.'); } }
+function userImgsFor(id){ const o=getUserImgs(); return Array.isArray(o[id])?o[id]:[]; }
+
+/* ---------- Garantiert darstellbare Bildkachel (SVG, immer sichtbar) ---------- */
+const EMOJI = {waffe:'🔫', btm:'🧪', arznei:'💊'};
+const AMPEL_HEX = {rot:'#dc2626', gelb:'#d97706', gruen:'#16a34a'};
+function svgTile(item){
+  const c1 = AMPEL_HEX[item.ampel]||'#475569';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${c1}" stop-opacity="0.20"/><stop offset="1" stop-color="#0f172a" stop-opacity="0.10"/>
+    </linearGradient></defs>
+    <rect width="400" height="400" fill="#f1f5f9"/><rect width="400" height="400" fill="url(#g)"/>
+    <text x="200" y="215" font-size="170" text-anchor="middle" dominant-baseline="middle">${EMOJI[item.kategorie]||'❔'}</text>
+    <text x="200" y="350" font-size="22" fill="#64748b" text-anchor="middle" font-family="sans-serif">Symbolbild</text>
+  </svg>`;
+  return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
+}
+/* Bevorzugte Bildquelle: eigenes Foto › Referenz-URL › SVG-Kachel */
+function mainImg(item){ const u=userImgsFor(item.id); if(u.length) return u[0]; if(item.bild) return item.bild; return svgTile(item); }
+
+function thumbHTML(item){
+  const src = mainImg(item);
+  const fb = svgTile(item).replace(/"/g,'&quot;');
+  return `<div class="thumb"><img src="${src}" alt="" loading="lazy"
+    onerror="this.onerror=null;this.src='${fb}'"></div>`;
+}
+
+/* ---------- Lightbox ---------- */
+function openLightbox(src){
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
+function cardHTML(item){
+  return `<div class="card" onclick="openDetail('${item.id}')">
+    ${thumbHTML(item)}
+    <div class="body">
+      <h3>${item.name}</h3>
+      <div class="sub">${item.wirkstoff?('Wirkstoff: '+item.wirkstoff+' · '):''}${item.gesetz}</div>
+    </div>
+    <div class="badge ${item.ampel}"><i class="fa-solid ${AMPEL_ICON[item.ampel]}"></i>${AMPEL_TEXT[item.ampel]}</div>
+  </div>`;
+}
+
+/* ---------- Liste rendern ---------- */
+function render(){
+  const q = document.getElementById('search').value.trim();
+  const list = DATA.filter(d => (CAT==='alle'||d.kategorie===CAT) && matches(d,q));
+  const box = document.getElementById('results');
+  document.getElementById('count').textContent = list.length+' Treffer';
+  if(!list.length){
+    box.innerHTML = `<div class="empty"><i class="fa-solid fa-magnifying-glass"></i>
+      Keine Treffer.<br><small>Versuche einen anderen Begriff oder nutze die Gelbe Liste Identa (Quellen).</small></div>`;
+    return;
+  }
+  box.innerHTML = list.map(cardHTML).join('');
+}
+function setCat(c, el){
+  CAT=c;
+  document.querySelectorAll('#tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+/* ---------- Detail ---------- */
+function openDetail(id){
+  const it = DATA.find(d=>d.id===id); if(!it) return;
+  const fb = svgTile(it).replace(/"/g,'&quot;');
+  const heroSrc = mainImg(it);
+  const heroImg = `<img src="${heroSrc}" alt="Vergleichsfoto" style="cursor:zoom-in"
+        onerror="this.onerror=null;this.src='${fb}'"
+        onclick="openLightbox(this.src)">
+       <span class="imgnote">${userImgsFor(it.id).length?'Eigenes Foto – zum Vergrößern tippen':'Symbolbild – zum Vergleich, tippen zum Vergrößern'}</span>`;
+
+  // Galerie aus eigenen Fotos + (falls vorhanden) Referenzbild
+  const ui = userImgsFor(it.id);
+  let galleryImgs = ui.map((src,i)=>({src,label:'Eigenes Foto',idx:i}));
+  if(it.bild) galleryImgs.push({src:it.bild,label:'Referenz',idx:-1});
+  const galleryHTML = galleryImgs.length>1 ? `
+      <div class="sectiontitle">Fotos (zum Vergrößern tippen)</div>
+      <div class="gallery">${galleryImgs.map(g=>`
+        <div class="gimg" onclick="openLightbox('${g.src.replace(/'/g,"\\'")}')">
+          <img src="${g.src}" alt="" onerror="this.onerror=null;this.src='${fb}'">
+          <span class="tagx">${g.label}</span>
+          ${g.idx>=0?`<button class="del" onclick="event.stopPropagation();delUserImg('${it.id}',${g.idx});closeDetail();openDetail('${it.id}')"><i class="fa-solid fa-trash"></i></button>`:''}
+        </div>`).join('')}</div>` : '';
+
+  const srcLinks = (it.quellen||[]).map(k=>{
+    const s = QUELLEN[k]; if(!s) return '';
+    return `<a href="${s.url}" target="_blank" rel="noopener">
+      <i class="fa-solid fa-up-right-from-square src"></i>
+      <span>${s.titel}<br><small style="color:var(--muted)">${s.meta}</small></span>
+      <i class="fa-solid fa-chevron-right ext"></i></a>`;
+  }).join('');
+
+  document.getElementById('sheet').innerHTML = `
+    <div class="hero">${heroImg}<button class="close" onclick="closeDetail()"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="pad">
+      <h2>${it.name}</h2>
+      <div class="syn">${(it.synonyme&&it.synonyme.length)?('Auch: '+it.synonyme.join(', ')):'&nbsp;'}</div>
+      ${galleryHTML}
+
+      <div class="ampel-big ${it.ampel}">
+        <div class="ic"><i class="fa-solid ${AMPEL_ICON[it.ampel]}"></i></div>
+        <div><div class="t1">${it.einstufung}</div><div class="t2">Ampel: ${AMPEL_TEXT[it.ampel]}</div></div>
+      </div>
+
+      ${it.wirkstoff?`<div class="field"><div class="lbl">Wirkstoff</div><div class="val">${it.wirkstoff}</div></div>`:''}
+      ${it.praegung?`<div class="field"><div class="lbl">Prägung / Erkennung</div><div class="val">${it.praegung}</div></div>`:''}
+      ${(it.farbe||it.form)?`<div class="field"><div class="lbl">Merkmale</div><div class="val">${[it.farbe,it.form].filter(Boolean).join(' · ')}</div></div>`:''}
+
+      <div class="field"><div class="lbl">Rechtsgrundlage</div><div class="val law">${it.gesetz}</div></div>
+      <div class="field"><div class="lbl">Einordnung (vereinfacht)</div><div class="val">${it.begruendung}</div></div>
+
+      <div class="sectiontitle">Quellen</div>
+      <div class="sources">${srcLinks||'<small style="color:var(--muted)">—</small>'}</div>
+
+      <div class="disclaimer mini" style="margin-top:14px">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>Vereinfachte Orientierung, keine Rechtsberatung. Die Strafbarkeit hängt vom Einzelfall ab
+        (Menge, Erlaubnis, Ort, Alter, Absicht). Im Zweifel Behörden/Anwalt fragen.</div>
+      </div>
+    </div>`;
+  document.getElementById('modal').classList.add('open');
+}
+function closeDetail(){document.getElementById('modal').classList.remove('open');}
+
+/* ---------- Navigation ---------- */
+function go(view, el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ---------- Disclaimer ---------- */
+function dismissDisclaimer(){
+  document.getElementById('disclaimer').style.display='none';
+  try{localStorage.setItem('ra_disclaimer','1');}catch(e){}
+}
+
+/* =========================================================================
+   KAMERA + VORSCHLÄGE
+   ========================================================================= */
+let lastPhotoDataUrl = null;
+
+function onPhoto(ev){
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    lastPhotoDataUrl = e.target.result;
+    const img = document.getElementById('camPreview');
+    img.src = lastPhotoDataUrl; img.style.display='block';
+    document.getElementById('aiBtn').style.display = getKey() ? 'inline-flex' : 'none';
+    document.getElementById('shareBtn').style.display = 'inline-flex';
+    setAIStatus('Foto bereit. Wähle oben deine KI und tippe „Foto mit KI prüfen“ – oder grenze unten über Merkmale ein.','');
+    manualSuggest();
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderCamResults(list, label){
+  document.getElementById('camCount').textContent = label || (list.length+' Vorschläge – bitte selbst vergleichen');
+  const box = document.getElementById('camResults');
+  box.innerHTML = list.length
+    ? list.map(cardHTML).join('')
+    : `<div class="empty"><i class="fa-solid fa-image"></i>Noch keine Vorschläge.<br><small>Merkmale eingeben oder KI nutzen.</small></div>`;
+}
+
+/* Merkmals-Filter (offline-Fallback) */
+function manualSuggest(){
+  const f = norm(document.getElementById('fFarbe').value);
+  const fo = norm(document.getElementById('fForm').value);
+  const p = norm(document.getElementById('fPraeg').value);
+  if(!f && !fo && !p){ renderCamResults([], 'Tippe Merkmale ein oder nutze die KI.'); return; }
+  const scored = DATA.map(d=>{
+    let s=0;
+    const hay = norm([d.farbe,d.form,d.praegung,d.name,d.wirkstoff,...(d.synonyme||[])].join(' '));
+    if(f && norm(d.farbe).includes(f)) s+=2;
+    if(fo && norm(d.form).includes(fo)) s+=2;
+    if(p && (norm(d.praegung).includes(p)||hay.includes(p))) s+=3;
+    return {d,s};
+  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).map(x=>x.d);
+  renderCamResults(scored, scored.length+' Vorschläge (Merkmals-Suche) – bitte selbst vergleichen');
+}
+
+/* ---------- KI-Anbieter (Teilen, ohne API-Schlüssel) ---------- */
+const PROVIDERS = {
+  chatgpt:{name:'ChatGPT', url:'https://chatgpt.com/'},
+  gemini: {name:'Gemini',  url:'https://gemini.google.com/app'},
+  claude: {name:'Claude',  url:'https://claude.ai/new'}
+};
+function getProvider(){ try{ return localStorage.getItem('ra_aiprovider')||'chatgpt'; }catch(e){ return 'chatgpt'; } }
+function setProvider(p){
+  try{ localStorage.setItem('ra_aiprovider',p); }catch(e){}
+  ['chatgpt','gemini','claude'].forEach(k=>{
+    const b=document.getElementById('prov-'+k); if(b) b.classList.toggle('active',k===p);
+  });
+}
+function aiFrageText(){
+  const namen = DATA.map(d=>d.name).join('; ');
+  return 'Ich versuche, ein fotografiertes Objekt rechtlich grob einzuordnen (Waffe, Betäubungsmittel/Droge '+
+    'oder Arzneimittel/Tablette). Welche der folgenden Möglichkeiten zeigt das Foto am ehesten? '+
+    'Bitte gib eine Rangliste (bestes zuerst), ohne Prozentzahlen, und nenne kurz die sichtbaren Merkmale. '+
+    'Mögliche Einträge: '+namen+'. '+
+    'Hinweis: Triff keine endgültige rechtliche Aussage – ich gleiche das Ergebnis anschließend selbst in meiner App ab.';
+}
+function dataUrlToFile(dataUrl, name){
+  const m=/^data:(.+?);base64,(.+)$/.exec(dataUrl); if(!m) return null;
+  const bin=atob(m[2]); const arr=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+  return new File([arr], name, {type:m[1]});
+}
+async function shareToAI(){
+  if(!lastPhotoDataUrl){ setAIStatus('Bitte zuerst ein Foto aufnehmen.','err'); return; }
+  const prov = getProvider();
+  const text = aiFrageText();
+  const file = dataUrlToFile(lastPhotoDataUrl, 'foto.jpg');
+
+  // 1) Bevorzugt: System-Teilen-Menü mit Foto + Frage
+  try{
+    if(navigator.canShare && file && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], text:text, title:'RechtsAmpel – KI-Anfrage'});
+      setAIStatus('Geteilt. Lies die Antwort in deiner KI-App ('+PROVIDERS[prov].name+') und wähle danach hier den passenden Eintrag.','');
+      showProvLinks(prov); return;
+    }
+    if(navigator.share){
+      await navigator.share({text:text, title:'RechtsAmpel – KI-Anfrage'});
+      setAIStatus('Frage geteilt (ohne Bild – Foto in der KI-App noch anhängen). Danach hier den Eintrag wählen.','');
+      showProvLinks(prov); return;
+    }
+  }catch(err){
+    if(err && err.name==='AbortError'){ setAIStatus('Teilen abgebrochen.',''); return; }
+  }
+
+  // 2) Fallback (Desktop / kein Teilen): Frage in Zwischenablage + Anbieter-Link
+  try{ await navigator.clipboard.writeText(text); }catch(e){}
+  setAIStatus('Teilen nicht verfügbar. Frage wurde in die Zwischenablage kopiert – öffne deine KI unten, füge die Frage ein und hänge das Foto an.','');
+  showProvLinks(prov);
+}
+function showProvLinks(prov){
+  const box=document.getElementById('provLinks');
+  const p=PROVIDERS[prov]||PROVIDERS.chatgpt;
+  box.style.display='flex';
+  box.innerHTML = `<a href="${p.url}" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> ${p.name} öffnen</a>`;
+}
+
+/* ---------- API-Key ---------- */
+function getKey(){try{return localStorage.getItem('ra_apikey')||'';}catch(e){return '';}}
+function saveKey(){
+  const v = document.getElementById('apiKey').value.trim();
+  try{ v?localStorage.setItem('ra_apikey',v):localStorage.removeItem('ra_apikey'); }catch(e){}
+  document.getElementById('keyState').textContent = v?'Gespeichert ✓':'Entfernt';
+  document.getElementById('aiBtn').style.display = (v && lastPhotoDataUrl) ? 'inline-flex':'none';
+}
+function setAIStatus(msg, cls){
+  const el = document.getElementById('aiStatus');
+  el.textContent = msg; el.className = 'ai-status '+(cls||'');
+}
+
+/* ---------- KI-Vorschläge via Anthropic API (optional, clientseitig) ---------- */
+async function runAISuggest(){
+  const key = getKey();
+  if(!key){ setAIStatus('Kein API-Schlüssel hinterlegt (unter „Quellen“).','err'); return; }
+  if(!lastPhotoDataUrl){ setAIStatus('Bitte zuerst ein Foto aufnehmen.','err'); return; }
+
+  const m = /^data:(image\/[a-zA-Z+]+);base64,(.+)$/.exec(lastPhotoDataUrl);
+  if(!m){ setAIStatus('Bildformat nicht lesbar.','err'); return; }
+  const mediaType = m[1], b64 = m[2];
+
+  const katalog = DATA.map(d=>({id:d.id, name:d.name, kategorie:d.kategorie, merkmale:[d.farbe,d.form,d.praegung].filter(Boolean).join(', ')}));
+  const prompt =
+    'Du hilfst, ein fotografiertes Objekt mit Einträgen eines Katalogs abzugleichen (Waffen, Drogen, Tabletten). '+
+    'Wähle aus dem Katalog die bis zu 5 am ehesten passenden Einträge anhand sichtbarer Merkmale. '+
+    'Antworte AUSSCHLIESSLICH als JSON-Array von id-Strings, z. B. ["a-ibuprofen","a-ass"]. '+
+    'Triff keine rechtliche Aussage. Katalog:\n'+JSON.stringify(katalog);
+
+  setAIStatus('KI analysiert das Foto …','work');
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-opus-4-8',
+        max_tokens:300,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:mediaType,data:b64}},
+          {type:'text',text:prompt}
+        ]}]
+      })
+    });
+    if(!res.ok){
+      const t = await res.text();
+      setAIStatus('KI-Fehler ('+res.status+'). Nutze die Merkmals-Suche. '+t.slice(0,120),'err');
+      return;
+    }
+    const json = await res.json();
+    const text = (json.content||[]).map(c=>c.text||'').join('');
+    let ids = [];
+    try{ ids = JSON.parse((text.match(/\[[\s\S]*\]/)||['[]'])[0]); }catch(e){}
+    const list = ids.map(id=>DATA.find(d=>d.id===id)).filter(Boolean);
+    if(!list.length){ setAIStatus('Keine eindeutige Zuordnung. Bitte Merkmals-Suche nutzen.','err'); renderCamResults([]); return; }
+    setAIStatus('KI-Vorschläge (unverbindlich) – bitte selbst mit den Vergleichsfotos abgleichen.','');
+    renderCamResults(list, list.length+' KI-Vorschläge – bitte selbst vergleichen & auswählen');
+  }catch(err){
+    setAIStatus('Netzwerk-/CORS-Fehler. Nutze die Merkmals-Suche. ('+err.message+')','err');
+  }
+}
+
+/* =========================================================================
+   HOCHLADEN / ZUORDNEN (eigene Fotos)
+   ========================================================================= */
+let uploadDataUrl = null;
+
+function onUploadPick(ev){
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    uploadDataUrl = e.target.result;
+    const img = document.getElementById('upPrev');
+    img.src = uploadDataUrl; img.style.display='block';
+    setUpStatus('Foto geladen. Kategorie und Eintrag wählen, dann zuordnen.','');
+  };
+  reader.readAsDataURL(file);
+}
+function setUpStatus(msg, cls){ const el=document.getElementById('upStatus'); el.textContent=msg; el.className='ai-status '+(cls||''); }
+
+function fillUploadEntries(){
+  const cat = document.getElementById('upCat').value;
+  const sel = document.getElementById('upEntry');
+  sel.innerHTML = DATA.filter(d=>d.kategorie===cat)
+    .map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+}
+
+function saveUploadAssign(){
+  if(!uploadDataUrl){ setUpStatus('Bitte zuerst ein Foto auswählen.','err'); return; }
+  const id = document.getElementById('upEntry').value;
+  if(!id){ setUpStatus('Bitte einen Eintrag wählen.','err'); return; }
+  const it = DATA.find(d=>d.id===id);
+  if(!confirm('Bist du dir 100% sicher, dass dieses Foto „'+it.name+'“ zeigt?\n\nNur sichere Fotos zuordnen.')) return;
+  const o = getUserImgs();
+  if(!Array.isArray(o[id])) o[id]=[];
+  o[id].push(uploadDataUrl);
+  saveUserImgs(o);
+  uploadDataUrl=null;
+  document.getElementById('upPrev').style.display='none';
+  document.getElementById('upInput').value='';
+  setUpStatus('✓ Foto „'+it.name+'“ zugeordnet. Es erscheint jetzt beim Eintrag.','');
+  renderMyImgs(); render();
+}
+
+function delUserImg(id, idx){
+  const o = getUserImgs();
+  if(Array.isArray(o[id])){ o[id].splice(idx,1); if(!o[id].length) delete o[id]; saveUserImgs(o); }
+  renderMyImgs(); render();
+}
+
+function renderMyImgs(){
+  const o = getUserImgs();
+  const box = document.getElementById('myImgs');
+  const rows = [];
+  Object.keys(o).forEach(id=>{
+    const it = DATA.find(d=>d.id===id); if(!it) return;
+    o[id].forEach((src,i)=>{
+      rows.push(`<div class="myimg-row">
+        <img src="${src}" alt="" onclick="openLightbox('${src.replace(/'/g,"\\'")}')">
+        <div class="info"><b>${it.name}</b><br><small>${AMPEL_TEXT[it.ampel]} · ${it.gesetz}</small></div>
+        <button onclick="delUserImg('${id}',${i})"><i class="fa-solid fa-trash"></i> Löschen</button>
+      </div>`);
+    });
+  });
+  box.innerHTML = rows.length ? rows.join('') : '<small style="color:var(--muted)">Noch keine eigenen Fotos zugeordnet.</small>';
+}
+
+/* =========================================================================
+   QUELLEN-SEITE + INIT
+   ========================================================================= */
+function renderSources(){
+  const order = ['waffg','waffg_anl','btmg','kcang','amg','bfarm','zoll','identa','bayern'];
+  const box = document.getElementById('srclist');
+  box.innerHTML = order.map(k=>{
+    const s = QUELLEN[k];
+    return `<a href="${s.url}" target="_blank" rel="noopener">
+      <i class="fa-solid fa-up-right-from-square src" style="color:#2563eb"></i>
+      <span>${s.titel}<span class="meta">${s.meta}</span></span>
+      <i class="fa-solid fa-chevron-right ext"></i></a>`;
+  }).join('');
+}
+
+function init(){
+  try{ if(localStorage.getItem('ra_disclaimer')==='1') document.getElementById('disclaimer').style.display='none'; }catch(e){}
+  const k = getKey();
+  if(k){ document.getElementById('apiKey').value=k; document.getElementById('keyState').textContent='Gespeichert ✓'; }
+  renderSources();
+  fillUploadEntries();
+  renderMyImgs();
+  setProvider(getProvider());
+  render();
+  // Lupen-Intro ausblenden
+  const splash=document.getElementById('splash');
+  if(splash){
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=>splash.remove(),600); }, reduce?300:1900);
+  }
+}
+init();
+</script>
+</body>
+</html>
