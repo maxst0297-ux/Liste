@@ -228,9 +228,50 @@
   .myimg-row .info{flex:1;min-width:0;font-size:13px}
   .myimg-row .info small{color:var(--muted)}
   .myimg-row button{border:none;background:#fef2f2;color:var(--rot);border:1px solid var(--rot-line);border-radius:9px;padding:8px 10px;cursor:pointer;font-family:inherit;font-size:12px}
+
+  /* KI-Anbieterwahl */
+  .provrow{display:flex;gap:8px;margin:12px 0 8px}
+  .provbtn{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;
+    padding:10px 6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;
+    flex-direction:column;gap:4px;align-items:center}
+  .provbtn i{font-size:18px}
+  .provbtn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .provlinks{display:none;gap:8px;margin:8px 0;flex-wrap:wrap}
+  .provlinks a{flex:1;min-width:120px;text-align:center;text-decoration:none;background:#eef2ff;color:#4338ca;
+    border:1px solid #c7d2fe;border-radius:11px;padding:10px;font-size:13px;font-weight:600}
+
+  /* Lupen-Intro (Splash) */
+  #splash{position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,#1f2937,#374151);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    transition:opacity .5s ease;color:#fff}
+  #splash.hide{opacity:0;pointer-events:none}
+  #splash .scene{position:relative;width:240px;height:90px;display:flex;align-items:center;justify-content:space-around;font-size:46px}
+  #splash .scene .lupe{position:absolute;top:6px;left:0;font-size:52px;animation:fly 1.7s ease-in-out forwards}
+  #splash .stitle{font-size:26px;font-weight:700;letter-spacing:.5px;opacity:0;animation:pop .5s ease .7s forwards}
+  #splash .ssub{font-size:13px;opacity:0;animation:pop .5s ease 1s forwards}
+  @keyframes fly{
+    0%{left:-10px;top:30px;transform:scale(.7) rotate(-15deg)}
+    35%{left:90px;top:-4px;transform:scale(1.15) rotate(5deg)}
+    65%{left:165px;top:30px;transform:scale(1) rotate(-8deg)}
+    100%{left:200px;top:6px;transform:scale(1.1) rotate(0)}
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    #splash .scene .lupe,#splash .stitle,#splash .ssub{animation:none;opacity:1;left:200px;top:6px}
+  }
 </style>
 </head>
 <body>
+
+<!-- LUPEN-INTRO -->
+<div id="splash">
+  <div class="scene">
+    <span>💊</span><span>🔫</span><span>🧪</span>
+    <span class="lupe">🔍</span>
+  </div>
+  <div class="stitle">RechtsAmpel</div>
+  <div class="ssub">Schnell rechtlich einordnen…</div>
+</div>
 
 <header class="app">
   <div class="wrap">
@@ -293,8 +334,21 @@
       <button class="btn primary" onclick="document.getElementById('camInput').click()">
         <i class="fa-solid fa-camera"></i> Foto aufnehmen / wählen
       </button>
+
+      <div style="text-align:left;margin-top:14px">
+        <label class="fld" style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin:2px 2px 5px">KI auswählen</label>
+        <div class="provrow">
+          <button class="provbtn active" id="prov-chatgpt" onclick="setProvider('chatgpt')"><i class="fa-solid fa-comment-dots"></i>ChatGPT</button>
+          <button class="provbtn" id="prov-gemini" onclick="setProvider('gemini')"><i class="fa-solid fa-gem"></i>Gemini</button>
+          <button class="provbtn" id="prov-claude" onclick="setProvider('claude')"><i class="fa-solid fa-robot"></i>Claude</button>
+        </div>
+      </div>
+      <button class="btn primary" id="shareBtn" onclick="shareToAI()" style="display:none;margin-top:8px">
+        <i class="fa-solid fa-share-from-square"></i> Foto mit KI prüfen (teilen)
+      </button>
+      <div class="provlinks" id="provLinks"></div>
       <button class="btn ghost" id="aiBtn" onclick="runAISuggest()" style="display:none">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> KI-Vorschläge anfordern
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Per API-Schlüssel automatisch (optional)
       </button>
       <div class="ai-status" id="aiStatus"></div>
 
@@ -787,9 +841,8 @@ function onPhoto(ev){
     const img = document.getElementById('camPreview');
     img.src = lastPhotoDataUrl; img.style.display='block';
     document.getElementById('aiBtn').style.display = getKey() ? 'inline-flex' : 'none';
-    setAIStatus(getKey()
-      ? 'Foto bereit. Tippe auf „KI-Vorschläge“ oder grenze über Merkmale ein.'
-      : 'Foto bereit. Gib unten Merkmale ein – oder hinterlege unter „Quellen“ einen KI-Schlüssel.','');
+    document.getElementById('shareBtn').style.display = 'inline-flex';
+    setAIStatus('Foto bereit. Wähle oben deine KI und tippe „Foto mit KI prüfen“ – oder grenze unten über Merkmale ein.','');
     manualSuggest();
   };
   reader.readAsDataURL(file);
@@ -818,6 +871,67 @@ function manualSuggest(){
     return {d,s};
   }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).map(x=>x.d);
   renderCamResults(scored, scored.length+' Vorschläge (Merkmals-Suche) – bitte selbst vergleichen');
+}
+
+/* ---------- KI-Anbieter (Teilen, ohne API-Schlüssel) ---------- */
+const PROVIDERS = {
+  chatgpt:{name:'ChatGPT', url:'https://chatgpt.com/'},
+  gemini: {name:'Gemini',  url:'https://gemini.google.com/app'},
+  claude: {name:'Claude',  url:'https://claude.ai/new'}
+};
+function getProvider(){ try{ return localStorage.getItem('ra_aiprovider')||'chatgpt'; }catch(e){ return 'chatgpt'; } }
+function setProvider(p){
+  try{ localStorage.setItem('ra_aiprovider',p); }catch(e){}
+  ['chatgpt','gemini','claude'].forEach(k=>{
+    const b=document.getElementById('prov-'+k); if(b) b.classList.toggle('active',k===p);
+  });
+}
+function aiFrageText(){
+  const namen = DATA.map(d=>d.name).join('; ');
+  return 'Ich versuche, ein fotografiertes Objekt rechtlich grob einzuordnen (Waffe, Betäubungsmittel/Droge '+
+    'oder Arzneimittel/Tablette). Welche der folgenden Möglichkeiten zeigt das Foto am ehesten? '+
+    'Bitte gib eine Rangliste (bestes zuerst), ohne Prozentzahlen, und nenne kurz die sichtbaren Merkmale. '+
+    'Mögliche Einträge: '+namen+'. '+
+    'Hinweis: Triff keine endgültige rechtliche Aussage – ich gleiche das Ergebnis anschließend selbst in meiner App ab.';
+}
+function dataUrlToFile(dataUrl, name){
+  const m=/^data:(.+?);base64,(.+)$/.exec(dataUrl); if(!m) return null;
+  const bin=atob(m[2]); const arr=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+  return new File([arr], name, {type:m[1]});
+}
+async function shareToAI(){
+  if(!lastPhotoDataUrl){ setAIStatus('Bitte zuerst ein Foto aufnehmen.','err'); return; }
+  const prov = getProvider();
+  const text = aiFrageText();
+  const file = dataUrlToFile(lastPhotoDataUrl, 'foto.jpg');
+
+  // 1) Bevorzugt: System-Teilen-Menü mit Foto + Frage
+  try{
+    if(navigator.canShare && file && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], text:text, title:'RechtsAmpel – KI-Anfrage'});
+      setAIStatus('Geteilt. Lies die Antwort in deiner KI-App ('+PROVIDERS[prov].name+') und wähle danach hier den passenden Eintrag.','');
+      showProvLinks(prov); return;
+    }
+    if(navigator.share){
+      await navigator.share({text:text, title:'RechtsAmpel – KI-Anfrage'});
+      setAIStatus('Frage geteilt (ohne Bild – Foto in der KI-App noch anhängen). Danach hier den Eintrag wählen.','');
+      showProvLinks(prov); return;
+    }
+  }catch(err){
+    if(err && err.name==='AbortError'){ setAIStatus('Teilen abgebrochen.',''); return; }
+  }
+
+  // 2) Fallback (Desktop / kein Teilen): Frage in Zwischenablage + Anbieter-Link
+  try{ await navigator.clipboard.writeText(text); }catch(e){}
+  setAIStatus('Teilen nicht verfügbar. Frage wurde in die Zwischenablage kopiert – öffne deine KI unten, füge die Frage ein und hänge das Foto an.','');
+  showProvLinks(prov);
+}
+function showProvLinks(prov){
+  const box=document.getElementById('provLinks');
+  const p=PROVIDERS[prov]||PROVIDERS.chatgpt;
+  box.style.display='flex';
+  box.innerHTML = `<a href="${p.url}" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> ${p.name} öffnen</a>`;
 }
 
 /* ---------- API-Key ---------- */
@@ -975,7 +1089,14 @@ function init(){
   renderSources();
   fillUploadEntries();
   renderMyImgs();
+  setProvider(getProvider());
   render();
+  // Lupen-Intro ausblenden
+  const splash=document.getElementById('splash');
+  if(splash){
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=>splash.remove(),600); }, reduce?300:1900);
+  }
 }
 init();
 </script>
