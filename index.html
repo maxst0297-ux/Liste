@@ -29,6 +29,8 @@
   }
   a{color:#2563eb}
   .wrap{max-width:760px;margin:0 auto;padding:0 14px}
+  /* Auf großen Bildschirmen mehr Breite nutzen */
+  @media (min-width:900px){ .wrap{max-width:1100px;padding:0 24px} }
 
   /* Header */
   header.app{
@@ -85,8 +87,10 @@
   .dot{width:12px;height:12px;border-radius:50%}
   .dot.rot{background:var(--rot)} .dot.gelb{background:var(--gelb)} .dot.gruen{background:var(--gruen)}
 
-  /* Cards list */
-  .results{display:grid;gap:10px}
+  /* Cards list – responsiv: Handy 1 Spalte, Tablet/PC mehrere */
+  .results{display:grid;gap:10px;grid-template-columns:1fr}
+  @media (min-width:680px){ .results{grid-template-columns:repeat(2,1fr)} }
+  @media (min-width:1000px){ .results{grid-template-columns:repeat(3,1fr)} }
   .card{
     background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     box-shadow:var(--shadow);padding:12px;display:flex;gap:12px;align-items:center;cursor:pointer;
@@ -143,6 +147,11 @@
     border-radius:20px 20px 0 0;animation:up .25s ease;
   }
   @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+  /* Auf großen Screens: Detail als zentrierte Karte statt bodenbündiges Sheet */
+  @media (min-width:760px){
+    .modal{align-items:center}
+    .sheet{max-width:620px;max-height:88vh;border-radius:20px}
+  }
   .sheet .hero{position:relative;background:#0f172a}
   .sheet .hero img{width:100%;max-height:280px;object-fit:cover;display:block}
   .sheet .hero .ph{height:200px;display:grid;place-items:center;font-size:72px;color:#475569}
@@ -167,6 +176,12 @@
   .field .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:4px}
   .field .val{font-size:14px}
   .field .val.law{font-weight:600}
+  .field.strafmass{border-width:1.5px}
+  .field.strafmass .lbl{color:inherit}
+  .field.strafmass.rot{background:var(--rot-bg);border-color:var(--rot-line);color:var(--rot)}
+  .field.strafmass.gelb{background:var(--gelb-bg);border-color:var(--gelb-line);color:var(--gelb)}
+  .field.strafmass.gruen{background:var(--gruen-bg);border-color:var(--gruen-line);color:var(--gruen)}
+  .field.strafmass .val{color:var(--ink);margin-top:2px}
   .sources a{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
     border-radius:12px;padding:11px 14px;margin-bottom:8px;text-decoration:none;color:var(--ink);font-size:13px}
   .sources a i.ext{margin-left:auto;color:var(--muted)}
@@ -547,6 +562,7 @@ const DATA = [
     wirkstoff:'Diamorphin', praegung:'', farbe:'braun/weiß', form:'pulver',
     ampel:'rot', einstufung:'Straftat',
     gesetz:'BtMG Anlage I (nicht verkehrsfähig), § 29',
+    strafmass:'Besitz/Erwerb: Freiheitsstrafe bis zu 5 Jahren oder Geldstrafe (§ 29 BtMG). Handel/Einfuhr nicht geringer Mengen: Freiheitsstrafe nicht unter 1 Jahr (§ 29a/30/30a BtMG). Im Einzelfall kann bei geringen Mengen zum Eigenkonsum von Strafe abgesehen werden.',
     begruendung:'Heroin ist ein nicht verkehrsfähiges Betäubungsmittel. Besitz, Erwerb und Handel sind strafbar.',
     bild:'https://commons.wikimedia.org/wiki/Special:FilePath/Bayer%20Heroin%20bottle.jpg',
     quellen:['btmg','bfarm']
@@ -1132,6 +1148,7 @@ function openDetail(id){
       ${it.merkmale?`<div class="field"><div class="lbl">Aussehen / Erkennungsmerkmale</div><div class="val">${it.merkmale}</div></div>`:''}
 
       <div class="field"><div class="lbl">Rechtsgrundlage</div><div class="val law">${it.gesetz}</div></div>
+      ${it.strafmass?`<div class="field strafmass ${it.ampel}"><div class="lbl"><i class="fa-solid fa-gavel"></i> Strafmaß / Wie geahndet</div><div class="val">${it.strafmass}</div></div>`:''}
       <div class="field"><div class="lbl">Einordnung (vereinfacht)</div><div class="val">${it.begruendung}</div></div>
 
       <div class="sectiontitle">Quellen</div>
