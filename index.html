@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --primary:#0F172A; --accent:#2563EB; --accent-d:#1d4ed8;
@@ -438,6 +439,12 @@
     </div>
 
     <div class="panel">
+      <h3><i class="fa-solid fa-database"></i> Datenquelle</h3>
+      <p id="dataSource"><small>Datenquelle wird geladen…</small></p>
+      <small>Wenn Supabase im Code konfiguriert ist, werden die Einträge aus der Datenbank geladen (Änderungen ohne neuen Code-Push). Ohne Konfiguration laufen die eingebetteten Daten.</small>
+    </div>
+
+    <div class="panel">
       <h3><i class="fa-solid fa-circle-info"></i> Über &amp; Haftung</h3>
       <p><small>Orientierungs-Werkzeug nach WaffG, BtMG und AMG. Einstufungen sind vereinfacht und im Zweifel konservativ. Die konkrete Strafbarkeit hängt vom Einzelfall ab (Menge, Erlaubnis, Ort, Alter, Absicht). Keine Gewähr, keine Rechtsberatung. Bilder sind Symbolbilder.</small></p>
       <button class="btn ghost" style="margin-top:4px" onclick="resetDisclaimer()"><i class="fa-solid fa-rotate-left"></i> Hinweis zurücksetzen</button>
@@ -487,6 +494,16 @@
 </nav>
 
 <script>
+/* =========================================================================
+   SUPABASE-KONFIGURATION
+   -> Trage hier deine Projekt-URL und den ÖFFENTLICHEN anon-Key ein.
+      (Der anon-Key ist nicht geheim; durch RLS nur Lesen erlaubt.)
+      Solange beide leer sind, nutzt die App die eingebetteten Daten.
+   ========================================================================= */
+const SUPABASE_URL = '';        // z. B. 'https://xxxxxxxx.supabase.co'
+const SUPABASE_ANON_KEY = '';   // z. B. 'eyJhbGciOi...'
+let DATA_SOURCE = 'lokal eingebettet';
+
 const QUELLEN = {
   waffg:   {titel:'Waffengesetz (WaffG) – amtlich', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/waffg_2002/'},
   waffg_anl:{titel:'WaffG Anlage 2 (verbotene Waffen)', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/waffg_2002/anlage_2.html'},
@@ -1455,11 +1472,44 @@ function renderSources(){
   const order=['waffg','waffg_anl','btmg','kcang','amg','bfarm','zoll','identa','bayern'];
   document.getElementById('srclist').innerHTML=order.map(k=>{const s=QUELLEN[k];if(!s)return '';return `<a href="${s.url}" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square" style="color:var(--accent)"></i><span>${s.titel}<span class="meta">${s.meta}</span></span><i class="fa-solid fa-chevron-right ext"></i></a>`;}).join('');
 }
+/* =========================================================================
+   SUPABASE: Daten laden (paginiert), falls konfiguriert
+   ========================================================================= */
+function updateDataSourceLabel(){
+  const el=document.getElementById('dataSource');
+  if(el) el.innerHTML='Datenquelle: <b>'+DATA_SOURCE+'</b> · '+DATA.length+' Einträge';
+}
+async function loadFromSupabase(){
+  if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return;            // nicht konfiguriert -> Fallback
+  if(!(window.supabase && window.supabase.createClient)) return;
+  try{
+    const client=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const PAGE=1000; let from=0; const rows=[];
+    while(true){
+      const {data,error}=await client.from('eintraege').select('doc').range(from, from+PAGE-1);
+      if(error) throw error;
+      if(!data || !data.length) break;
+      data.forEach(r=>{ if(r && r.doc) rows.push(r.doc); });
+      if(data.length < PAGE) break;
+      from += PAGE;
+    }
+    if(rows.length){
+      DATA.length=0; rows.forEach(d=>DATA.push(d));
+      DATA_SOURCE='Supabase';
+      renderCats(); render(); renderFavoriten(); updateFavSummary(); updateDataSourceLabel();
+      console.log('Supabase: '+rows.length+' Einträge geladen.');
+    }
+  }catch(err){
+    console.warn('Supabase-Laden fehlgeschlagen, nutze eingebettete Daten:', err.message||err);
+  }
+}
+
 function init(){
   const k=getKey(); if(k){ document.getElementById('apiKey').value=k; document.getElementById('keyState').textContent='Gespeichert ✓'; }
   addAMGStoffe();
-  renderCats(); renderSources(); fillUploadEntries(); renderMyImgs(); updateFavSummary();
+  renderCats(); renderSources(); fillUploadEntries(); renderMyImgs(); updateFavSummary(); updateDataSourceLabel();
   setProvider(getProvider()); render();
+  loadFromSupabase();   // im Hintergrund; ersetzt Daten, wenn Supabase konfiguriert ist
   // Schließe Vorschläge bei Klick außerhalb
   document.addEventListener('click',e=>{ const sb=document.querySelector('#view-start .searchbar'); if(sb&&!sb.contains(e.target)) document.getElementById('homeSuggest').classList.remove('open'); });
   // Splash
