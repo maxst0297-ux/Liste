@@ -1,7 +1,7 @@
 # Hosting-Anleitung: Vercel + Supabase
 
 Die App (`index.html`) läuft **sofort** auch ohne Supabase mit eingebetteten Daten.
-Mit Supabase kannst du die ~2149 Einträge in der Datenbank pflegen, **ohne Code-Push**.
+Mit Supabase kannst du die ~128 Einträge in der Datenbank pflegen, **ohne Code-Push**.
 
 > **Wichtig: eigenes, getrenntes Projekt!**
 > Du hast bereits ein Projekt bei Supabase und Vercel. Für diese App legst du auf **beiden**
@@ -17,8 +17,8 @@ Mit Supabase kannst du die ~2149 Einträge in der Datenbank pflegen, **ohne Code
 2. In **diesem neuen Projekt**: links **SQL Editor** → **New query**.
 3. Inhalt von **`supabase/setup.sql`** einfügen → **Run** (legt Tabelle `eintraege` + Leserecht an).
 4. Daten importieren – **eine** Query:
-   - **`supabase/data.sql`** einfügen → **Run** (kompakt, ~224 KB, ~2149 Einträge in einem Schritt).
-   (Danach hat die Tabelle 2149 Zeilen – prüfbar unter **Table Editor → eintraege**.)
+   - **`supabase/data.sql`** einfügen → **Run** (kompakt, ~105 KB, ~128 Einträge in einem Schritt).
+   (Danach hat die Tabelle 128 Zeilen – prüfbar unter **Table Editor → eintraege**.)
 5. Schlüssel **dieses neuen Projekts** kopieren: **Project Settings → API**:
    - **Project URL** (z. B. `https://abcd.supabase.co`)
    - **anon public** key (langer `eyJ...`-String) – dieser ist *öffentlich*, kein Geheimnis.
