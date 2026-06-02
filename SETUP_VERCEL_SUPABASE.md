@@ -16,10 +16,8 @@ Mit Supabase kannst du die ~2149 Einträge in der Datenbank pflegen, **ohne Code
    - Hinweis: Der kostenlose Tarif erlaubt meist **2 aktive Projekte** pro Organisation.
 2. In **diesem neuen Projekt**: links **SQL Editor** → **New query**.
 3. Inhalt von **`supabase/setup.sql`** einfügen → **Run** (legt Tabelle `eintraege` + Leserecht an).
-4. Daten importieren – nacheinander je eine neue Query:
-   - **`supabase/data_1.sql`** einfügen → Run
-   - **`supabase/data_2.sql`** einfügen → Run
-   - **`supabase/data_3.sql`** einfügen → Run
+4. Daten importieren – **eine** Query:
+   - **`supabase/data.sql`** einfügen → **Run** (kompakt, ~224 KB, ~2149 Einträge in einem Schritt).
    (Danach hat die Tabelle 2149 Zeilen – prüfbar unter **Table Editor → eintraege**.)
 5. Schlüssel **dieses neuen Projekts** kopieren: **Project Settings → API**:
    - **Project URL** (z. B. `https://abcd.supabase.co`)
