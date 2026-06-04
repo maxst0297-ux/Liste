@@ -451,9 +451,15 @@
     </div>
 
     <div class="panel">
-      <h3><i class="fa-solid fa-robot"></i> KI-Bilderkennung (optional)</h3>
-      <p>Für automatische Foto-Analyse mit Prozentwerten kannst du einen Anthropic-API-Schlüssel hinterlegen. Er wird <b>nur lokal auf diesem Gerät</b> gespeichert. Ohne Schlüssel funktioniert die App über Suche & Teilen-Funktion.</p>
-      <input id="apiKey" type="password" placeholder="sk-ant-… (optional)" />
+      <h3><i class="fa-solid fa-robot"></i> KI aktivieren (optional)</h3>
+      <p>Für ausformulierte Bot-Antworten und automatische Foto-Analyse kannst du einen KI-Schlüssel hinterlegen. Er wird <b>nur lokal auf diesem Gerät</b> gespeichert. Ohne Schlüssel funktioniert die App über lokale Suche &amp; Teilen-Funktion.</p>
+      <label class="fld">Anbieter</label>
+      <select id="keyProvider" onchange="onKeyProviderChange()">
+        <option value="gemini">Google Gemini (kostenlos)</option>
+        <option value="anthropic">Anthropic / Claude</option>
+      </select>
+      <p id="keyHelp" style="font-size:12px"><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Kostenlosen Gemini-Schlüssel holen → aistudio.google.com/app/apikey</a></p>
+      <input id="apiKey" type="password" placeholder="Hier Schlüssel einfügen…" />
       <button class="btn primary" style="width:auto;padding:10px 16px;font-size:13px" onclick="saveKey()"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
       <span id="keyState" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
     </div>
@@ -1516,10 +1522,41 @@ function showProvLinks(prov){ const box=document.getElementById('provLinks'); co
 
 /* ---- API-Key ---- */
 function getKey(){ try{return localStorage.getItem('ra_apikey')||'';}catch(e){return '';} }
+function getKeyProvider(){ try{return localStorage.getItem('ra_keyprovider')||'gemini';}catch(e){return 'gemini';} }
 function saveKey(){
   const v=document.getElementById('apiKey').value.trim();
-  try{ v?localStorage.setItem('ra_apikey',v):localStorage.removeItem('ra_apikey'); }catch(e){}
-  document.getElementById('keyState').textContent=v?'Gespeichert ✓':'Entfernt';
+  const prov=document.getElementById('keyProvider').value;
+  try{ v?localStorage.setItem('ra_apikey',v):localStorage.removeItem('ra_apikey'); localStorage.setItem('ra_keyprovider',prov); }catch(e){}
+  document.getElementById('keyState').textContent=v?'Gespeichert ✓ ('+(prov==='gemini'?'Gemini':'Claude')+')':'Entfernt';
+}
+function onKeyProviderChange(){
+  const prov=document.getElementById('keyProvider').value;
+  const help=document.getElementById('keyHelp');
+  if(prov==='gemini') help.innerHTML='<a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Kostenlosen Gemini-Schlüssel holen → aistudio.google.com/app/apikey</a>';
+  else help.innerHTML='<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Anthropic-Schlüssel holen → console.anthropic.com</a> (kleines Startguthaben, danach kostenpflichtig)';
+}
+/* Generische KI-Aufrufe – funktionieren mit Gemini (gratis) oder Anthropic */
+async function aiText(systemText,userText){
+  const key=getKey(), prov=getKeyProvider(); if(!key) throw new Error('no key');
+  if(prov==='gemini'){
+    const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:systemText}]},contents:[{role:'user',parts:[{text:userText}]}]})});
+    if(!res.ok) throw new Error('Gemini '+res.status+': '+(await res.text()).slice(0,140));
+    const j=await res.json(); return (((j.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('').trim();
+  }
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-opus-4-8',max_tokens:300,system:systemText,messages:[{role:'user',content:userText}]})});
+  if(!res.ok) throw new Error('Claude '+res.status);
+  const j=await res.json(); return (j.content||[]).map(c=>c.text||'').join('').trim();
+}
+async function aiVision(promptText,mediaType,b64){
+  const key=getKey(), prov=getKeyProvider(); if(!key) throw new Error('no key');
+  if(prov==='gemini'){
+    const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({contents:[{role:'user',parts:[{inline_data:{mime_type:mediaType,data:b64}},{text:promptText}]}]})});
+    if(!res.ok) throw new Error('Gemini '+res.status+': '+(await res.text()).slice(0,140));
+    const j=await res.json(); return (((j.candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||'').join('');
+  }
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-opus-4-8',max_tokens:400,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mediaType,data:b64}},{type:'text',text:promptText}]}]})});
+  if(!res.ok) throw new Error('Claude '+res.status);
+  const j=await res.json(); return (j.content||[]).map(c=>c.text||'').join('');
 }
 async function runAISuggest(){
   const key=getKey(); const an=document.getElementById('analyzing');
@@ -1531,11 +1568,8 @@ async function runAISuggest(){
   const prompt='Gleiche das fotografierte Objekt mit dem Katalog ab (Waffen, Drogen, Tabletten). Gib die bis zu 5 wahrscheinlichsten Treffer als JSON-Array zurück, jeweils {"id":"...","pct":0-100}, absteigend nach Wahrscheinlichkeit. pct ist deine geschätzte Trefferwahrscheinlichkeit. Nur JSON, keine weitere Ausgabe. Katalog:\n'+JSON.stringify(katalog);
   setAIStatus('KI analysiert das Foto …','work');
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-opus-4-8',max_tokens:400,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mediaType,data:b64}},{type:'text',text:prompt}]}]})});
+    const txt=await aiVision(prompt, mediaType, b64);
     an.classList.remove('on');
-    if(!res.ok){ const t=await res.text(); setAIStatus('KI-Fehler ('+res.status+'). Nutze die Teilen-Funktion. '+t.slice(0,100),'err'); return; }
-    const json=await res.json();
-    const txt=(json.content||[]).map(c=>c.text||'').join('');
     let arr=[]; try{ arr=JSON.parse((txt.match(/\[[\s\S]*\]/)||['[]'])[0]); }catch(e){}
     const items=arr.map(o=>({it:DATA.find(d=>d.id===o.id),pct:Math.max(0,Math.min(100,Math.round(o.pct||0)))})).filter(o=>o.it);
     if(!items.length){ setAIStatus('Keine eindeutige Zuordnung. Bitte Teilen-Funktion nutzen.','err'); return; }
@@ -1639,12 +1673,9 @@ function botAnswerText(query,matches){
   return 'Ich habe <b>'+matches.length+'</b> passende Einträge gefunden. Der wahrscheinlichste: '+botSummary(matches[0]);
 }
 async function botAI(query,matches){
-  const key=getKey(); if(!key) throw new Error('no key');
   const kontext=matches.map(d=>({name:d.name,kategorie:d.kategorie,wirkstoff:d.wirkstoff,status:d.einstufung,gesetz:d.gesetz})).slice(0,8);
   const sys='Du bist ein knapper, sachlicher Assistent in einer deutschen App zur rechtlichen Einordnung von Waffen, Betäubungsmitteln und Arzneimitteln. Antworte in 1-3 kurzen Sätzen auf Deutsch, nutze NUR die bereitgestellten Treffer als Faktenbasis, erfinde nichts, und weise bei Unsicherheit auf die Detailansicht/Quellen hin. Keine Rechtsberatung.';
-  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-opus-4-8',max_tokens:300,system:sys,messages:[{role:'user',content:'Frage: '+query+'\n\nGefundene Treffer (JSON):\n'+JSON.stringify(kontext)}]})});
-  if(!res.ok) throw new Error('api '+res.status);
-  const j=await res.json(); const t=(j.content||[]).map(c=>c.text||'').join('').trim();
+  const t=(await aiText(sys, 'Frage: '+query+'\n\nGefundene Treffer (JSON):\n'+JSON.stringify(kontext))).trim();
   return t? escapeHtml(t).replace(/\n/g,'<br>') : botAnswerText(query,matches);
 }
 async function botRespond(query){
@@ -1682,7 +1713,9 @@ async function sendBot(){
 }
 
 function init(){
-  const k=getKey(); if(k){ document.getElementById('apiKey').value=k; document.getElementById('keyState').textContent='Gespeichert ✓'; }
+  const provSel=document.getElementById('keyProvider'); if(provSel) provSel.value=getKeyProvider();
+  onKeyProviderChange();
+  const k=getKey(); if(k){ document.getElementById('apiKey').value=k; document.getElementById('keyState').textContent='Gespeichert ✓ ('+(getKeyProvider()==='gemini'?'Gemini':'Claude')+')'; }
   addMedikamente();
   renderCats(); renderSources(); fillUploadEntries(); renderMyImgs(); updateFavSummary(); updateDataSourceLabel();
   ['standHome','standProfil'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=STAND; });
