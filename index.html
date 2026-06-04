@@ -281,6 +281,43 @@
   @keyframes fly{0%{left:-10px;top:30px;transform:scale(.7) rotate(-15deg)}35%{left:90px;top:-4px;transform:scale(1.15) rotate(5deg)}65%{left:165px;top:30px;transform:scale(1) rotate(-8deg)}100%{left:200px;top:6px;transform:scale(1.1) rotate(0)}}
   @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){#splash .scene .lupe,#splash .stitle,#splash .ssub{animation:none;opacity:1}}
+
+  /* KI-Bot */
+  .fab{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:50;width:58px;height:58px;border-radius:50%;
+    border:none;background:linear-gradient(135deg,var(--accent),#1e40af);color:#fff;font-size:23px;cursor:pointer;
+    box-shadow:0 6px 18px rgba(37,99,235,.45);display:grid;place-items:center}
+  .fab:active{transform:scale(.94)}
+  .fab .pulse{position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent);animation:pulse 2s ease-out infinite;opacity:0}
+  @keyframes pulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.5);opacity:0}}
+  .botwrap{position:fixed;inset:0;z-index:70;display:none;align-items:flex-end;justify-content:center;background:rgba(15,23,42,.5)}
+  .botwrap.open{display:flex}
+  .botpanel{background:var(--bg);width:100%;max-width:680px;height:82vh;border-radius:24px 24px 0 0;display:flex;flex-direction:column;animation:up .3s cubic-bezier(.2,.8,.2,1);overflow:hidden}
+  @media (min-width:760px){ .botwrap{align-items:center} .botpanel{max-width:540px;height:78vh;border-radius:24px} }
+  .bothead{background:var(--primary);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:11px;flex:0 0 auto}
+  .bothead .ic{width:38px;height:38px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-size:17px}
+  .bothead h3{margin:0;font-size:16px;font-weight:700;flex:1}
+  .bothead .sub2{font-size:11px;opacity:.8;font-weight:400}
+  .bothead button{border:none;background:rgba(255,255,255,.12);color:#fff;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer}
+  .botbody{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
+  .bmsg{max-width:88%;font-size:14px;line-height:1.45;padding:11px 14px;border-radius:16px}
+  .bmsg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:5px}
+  .bmsg.bot{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:5px}
+  .bmsg.bot b{color:var(--primary)}
+  .botcards{display:flex;flex-direction:column;gap:9px;align-self:stretch}
+  .botcard{display:flex;gap:11px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:9px;cursor:pointer}
+  .botcard .bt{width:46px;height:46px;border-radius:10px;overflow:hidden;flex:0 0 auto;background:#f1f5f9}
+  .botcard .bt img{width:100%;height:100%;object-fit:cover}
+  .botcard .bb{flex:1;min-width:0}
+  .botcard .bb h5{margin:0;font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .botcard .bb span{font-size:11.5px;color:var(--muted)}
+  .botcard .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .bottyping{align-self:flex-start;color:var(--muted);font-size:13px;padding:4px 6px}
+  .botchips{display:flex;gap:7px;flex-wrap:wrap;margin-top:2px}
+  .botchips button{border:1px solid var(--line);background:var(--card);color:var(--accent);border-radius:999px;padding:7px 12px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+  .botfoot{flex:0 0 auto;border-top:1px solid var(--line);background:var(--card);padding:10px;display:flex;gap:8px;align-items:center;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+  .botfoot input{flex:1;border:1px solid var(--line);border-radius:13px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none}
+  .botfoot input:focus{border-color:var(--accent)}
+  .botfoot button{border:none;background:var(--accent);color:#fff;width:44px;height:44px;border-radius:50%;font-size:16px;cursor:pointer;flex:0 0 auto}
 </style>
 </head>
 <body>
@@ -483,6 +520,23 @@
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lbclose" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button>
   <img id="lightboxImg" alt="Foto groß" />
+</div>
+
+<!-- KI-BOT -->
+<button class="fab" id="botFab" onclick="openBot()" aria-label="KI-Assistent"><span class="pulse"></span><i class="fa-solid fa-robot"></i></button>
+<div class="botwrap" id="botwrap" onclick="if(event.target===this)closeBot()">
+  <div class="botpanel">
+    <div class="bothead">
+      <div class="ic"><i class="fa-solid fa-robot"></i></div>
+      <h3>KI-Assistent<br><span class="sub2">Frag mich – ich finde den passenden Eintrag</span></h3>
+      <button onclick="closeBot()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="botbody" id="botBody"></div>
+    <div class="botfoot">
+      <input id="botInput" type="text" placeholder="z. B. „Ist Subutex BtM?“ oder „weiße Tablette“" onkeydown="if(event.key==='Enter')sendBot()" />
+      <button onclick="sendBot()" aria-label="Senden"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
 </div>
 
 <nav class="bottom">
@@ -1125,7 +1179,14 @@ function mainImg(item){ const u=userImgsFor(item.id); if(u.length) return u[0]; 
 /* ---- Auto-Bilder per Wikipedia (best effort, gecacht) ---- */
 let WIKIIMG=(function(){ try{return JSON.parse(localStorage.getItem('ra_wikiimg')||'{}');}catch(e){return {};} })();
 function saveWiki(){ try{localStorage.setItem('ra_wikiimg',JSON.stringify(WIKIIMG));}catch(e){} }
-function imgQuery(item){ return ((item.wirkstoff||item.name||'').split('/')[0]).trim(); }
+function imgQuery(item){
+  let q = item.wirkstoff || item.name || '';
+  q = q.split('/')[0];                 // erstes bei "X / Y"
+  q = q.replace(/\(.*?\)/g,' ');       // Klammern entfernen
+  q = q.split(' - ')[0];               // Herstellername nach " - " entfernen
+  q = q.replace(/\d+[.,]?\d*\s*(mg|g|ml|%|µg|mcg|stk|iE).*/i,''); // Dosisangaben entfernen
+  return q.replace(/\s+/g,' ').trim();
+}
 function cachedImg(item){ const v=WIKIIMG[imgQuery(item)]; return v||null; }   // '' = versucht, nichts gefunden
 async function fetchWikiImg(q){
   if(!q || (q in WIKIIMG)) return WIKIIMG[q]||'';
@@ -1144,8 +1205,7 @@ async function prefetchImages(items){
   try{
     const seen=new Set(); const todo=[];
     for(const it of items){
-      if(it.kategorie!=='arznei') continue;
-      if(userImgsFor(it.id).length||it.bild) continue;
+      if(userImgsFor(it.id).length||it.bild) continue;   // alle Kategorien
       const q=imgQuery(it); if(!q||(q in WIKIIMG)||seen.has(q)) continue;
       seen.add(q); todo.push(q); if(todo.length>=30) break;
     }
@@ -1541,6 +1601,76 @@ async function loadFromSupabase(){
   }catch(err){
     console.warn('Supabase-Laden fehlgeschlagen, nutze eingebettete Daten:', err.message||err);
   }
+}
+
+/* =========================================================================
+   KI-ASSISTENT (Bot)
+   ========================================================================= */
+const BOT_STOP=new Set('ist sind war ein eine einen einem einer der die das den dem des was welche welcher welches wie wo wann warum wieso mit und oder von vom für fuer ich du wir man kann darf muss soll hat habe finde suche zeig zeige zeigen mir bitte mal denn auch noch im in an auf zum zur als bei aus nach ueber über unter gibt es eigentlich nicht nur etwas eine'.split(' '));
+function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function botSearch(query){
+  const nq=norm(query);
+  const toks=query.toLowerCase().split(/[^a-zäöüß0-9]+/).filter(w=>w.length>=3 && !BOT_STOP.has(w));
+  const scored=DATA.map(it=>{
+    const hay=norm([it.name,it.wirkstoff,it.einstufung,it.gesetz,it.kurz,it.farbe,it.form,...(it.synonyme||[]),...(it.tags||[])].join(' '));
+    let s=0;
+    if(nq && hay.includes(nq)) s+=6;
+    toks.forEach(t=>{ const n=norm(t); if(n && hay.includes(n)) s+=2; });
+    if(it.wirkstoff && toks.some(t=>norm(it.wirkstoff)===norm(t))) s+=3;
+    return {it,s};
+  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
+  return scored.slice(0,6).map(x=>x.it);
+}
+function botSummary(it){
+  const st={rot:'verboten bzw. strafrechtlich relevant 🔴',gelb:'eingeschränkt / besondere Vorschriften 🟡',gruen:'erlaubt 🟢'}[it.ampel]||'';
+  return '<b>'+escapeHtml(it.name)+'</b> ('+(CAT_INFO[it.kategorie]?CAT_INFO[it.kategorie].label:'')+'): '+escapeHtml(it.einstufung||'')+'. Status: '+st+'.'+(it.kurz?' '+escapeHtml(it.kurz):'')+'<br><small>Tippe unten auf den Eintrag für Details &amp; Quellen.</small>';
+}
+function botAnswerText(query,matches){
+  if(!matches.length) return 'Dazu habe ich leider keinen passenden Eintrag gefunden. 🤔 Versuche es mit einem <b>Wirkstoff</b> (z. B. „Oxazepam"), einem <b>Präparatnamen</b> (z. B. „Tavor") oder einem <b>Gegenstand</b> (z. B. „Butterflymesser").';
+  if(matches.length===1) return botSummary(matches[0]);
+  return 'Ich habe <b>'+matches.length+'</b> passende Einträge gefunden. Der wahrscheinlichste: '+botSummary(matches[0]);
+}
+async function botAI(query,matches){
+  const key=getKey(); if(!key) throw new Error('no key');
+  const kontext=matches.map(d=>({name:d.name,kategorie:d.kategorie,wirkstoff:d.wirkstoff,status:d.einstufung,gesetz:d.gesetz})).slice(0,8);
+  const sys='Du bist ein knapper, sachlicher Assistent in einer deutschen App zur rechtlichen Einordnung von Waffen, Betäubungsmitteln und Arzneimitteln. Antworte in 1-3 kurzen Sätzen auf Deutsch, nutze NUR die bereitgestellten Treffer als Faktenbasis, erfinde nichts, und weise bei Unsicherheit auf die Detailansicht/Quellen hin. Keine Rechtsberatung.';
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-opus-4-8',max_tokens:300,system:sys,messages:[{role:'user',content:'Frage: '+query+'\n\nGefundene Treffer (JSON):\n'+JSON.stringify(kontext)}]})});
+  if(!res.ok) throw new Error('api '+res.status);
+  const j=await res.json(); const t=(j.content||[]).map(c=>c.text||'').join('').trim();
+  return t? escapeHtml(t).replace(/\n/g,'<br>') : botAnswerText(query,matches);
+}
+async function botRespond(query){
+  const matches=botSearch(query);
+  if(getKey() && matches.length){
+    try{ return {text:await botAI(query,matches), cards:matches}; }catch(e){}
+  }
+  return {text:botAnswerText(query,matches), cards:matches};
+}
+function botBodyEl(){ return document.getElementById('botBody'); }
+function scrollBot(){ const b=botBodyEl(); if(b) b.scrollTop=b.scrollHeight; }
+function addBotMsg(html,who){ const d=document.createElement('div'); d.className='bmsg '+who; d.innerHTML=html; botBodyEl().appendChild(d); scrollBot(); }
+function addBotCards(items){ if(!items||!items.length) return; const w=document.createElement('div'); w.className='botcards';
+  w.innerHTML=items.map(it=>{ const fb=svgTile(it).replace(/"/g,'&quot;'); return `<div class="botcard" onclick="closeBot();openDetail('${it.id}')"><div class="bt"><img src="${mainImg(it)}" data-imgq="${imgQuery(it).replace(/"/g,'&quot;')}" onerror="this.onerror=null;this.src='${fb}'"></div><div class="bb"><h5>${escapeHtml(it.name)}</h5><span>${CAT_INFO[it.kategorie]?CAT_INFO[it.kategorie].label:''} · ${escapeHtml(it.einstufung||'')}</span></div><span class="dot" style="background:${STATUS_HEX[it.ampel]}"></span></div>`; }).join('');
+  botBodyEl().appendChild(w); scrollBot(); schedulePrefetch(items);
+}
+function addChips(arr){ const w=document.createElement('div'); w.className='botchips'; w.innerHTML=arr.map(c=>`<button onclick="askBot(${JSON.stringify(c)})">${escapeHtml(c)}</button>`).join(''); botBodyEl().appendChild(w); scrollBot(); }
+function askBot(q){ const i=document.getElementById('botInput'); i.value=q; sendBot(); }
+let botStarted=false;
+function openBot(){
+  document.getElementById('botwrap').classList.add('open');
+  if(!botStarted){ botStarted=true;
+    addBotMsg('Hallo! 👋 Ich helfe dir, schnell den richtigen Eintrag zu finden. Frag nach einem <b>Wirkstoff</b>, <b>Präparat</b> oder <b>Gegenstand</b> – oder nach dem rechtlichen Status.','bot');
+    addChips(['Ist Subutex BtM?','Buprenorphin','Verbotene Messer','Was ist Ritalin?']);
+  }
+  setTimeout(()=>{ const i=document.getElementById('botInput'); if(i) i.focus(); },200);
+}
+function closeBot(){ document.getElementById('botwrap').classList.remove('open'); }
+async function sendBot(){
+  const inp=document.getElementById('botInput'); const q=(inp.value||'').trim(); if(!q) return;
+  inp.value=''; addBotMsg(escapeHtml(q),'user');
+  const typing=document.createElement('div'); typing.className='bottyping'; typing.textContent='Assistent denkt …'; botBodyEl().appendChild(typing); scrollBot();
+  let res; try{ res=await botRespond(q); }catch(e){ res={text:'Es ist ein Fehler aufgetreten. Bitte erneut versuchen.',cards:[]}; }
+  typing.remove(); addBotMsg(res.text,'bot'); addBotCards(res.cards);
 }
 
 function init(){
