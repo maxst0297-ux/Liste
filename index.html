@@ -2,341 +2,381 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#1f2937" />
-<title>RechtsAmpel – Rechtliche Einordnung (WaffG · BtMG · AMG)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#0F172A" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Datenbank – Identifizierung & rechtliche Einordnung</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    --bg:#f3f4f6; --card:#ffffff; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb;
-    --brand:#1f2937; --brand2:#374151;
+    --primary:#0F172A; --accent:#2563EB; --accent-d:#1d4ed8;
+    --bg:#F8FAFC; --card:#FFFFFF; --ink:#0F172A; --muted:#64748B; --line:#E2E8F0;
     --rot:#dc2626; --rot-bg:#fef2f2; --rot-line:#fecaca;
     --gelb:#d97706; --gelb-bg:#fffbeb; --gelb-line:#fde68a;
     --gruen:#16a34a; --gruen-bg:#f0fdf4; --gruen-line:#bbf7d0;
-    --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
-    --radius:16px;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.10);
+    --shadow:0 4px 6px -1px rgba(15,23,42,.08),0 2px 4px -2px rgba(15,23,42,.06);
+    --shadow-lg:0 10px 25px -5px rgba(15,23,42,.12),0 8px 10px -6px rgba(15,23,42,.08);
+    --radius:18px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{
-    font-family:'Poppins',system-ui,-apple-system,sans-serif;
-    background:var(--bg); color:var(--ink); line-height:1.45;
-    padding-bottom:90px;
-    -webkit-text-size-adjust:100%;
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.5;
+    padding-bottom:calc(72px + env(safe-area-inset-bottom));
+    -webkit-text-size-adjust:100%; overscroll-behavior-y:none;
   }
-  a{color:#2563eb}
-  .wrap{max-width:760px;margin:0 auto;padding:0 14px}
+  a{color:var(--accent)}
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px}
+  @media (min-width:760px){ .wrap{max-width:1040px} }
 
   /* Header */
   header.app{
-    background:linear-gradient(135deg,var(--brand),var(--brand2));
-    color:#fff;padding:16px 0 14px;position:sticky;top:0;z-index:30;
-    box-shadow:var(--shadow);
+    background:var(--primary); color:#fff; position:sticky; top:0; z-index:30;
+    padding:calc(12px + env(safe-area-inset-top)) 0 12px; box-shadow:var(--shadow);
   }
   header.app .wrap{display:flex;align-items:center;gap:12px}
-  .logo{
-    width:42px;height:42px;border-radius:12px;flex:0 0 auto;
-    background:#fff;display:grid;place-items:center;font-size:22px;
-    box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);
-  }
-  .logo .d1{color:var(--rot)} .logo .d2{color:var(--gelb)} .logo .d3{color:var(--gruen)}
-  header.app h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.2px}
-  header.app p{margin:1px 0 0;font-size:12px;opacity:.85}
+  .logo{width:38px;height:38px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;
+    background:var(--accent);font-size:18px;box-shadow:0 2px 8px rgba(37,99,235,.4)}
+  header.app h1{font-size:19px;margin:0;font-weight:700;flex:1;letter-spacing:-.3px}
+  .iconbtn{width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.12);
+    color:#fff;font-size:16px;cursor:pointer;display:grid;place-items:center}
 
-  /* Disclaimer */
-  .disclaimer{
-    background:#fff7ed;border:1px solid var(--gelb-line);color:#7c2d12;
-    border-radius:var(--radius);padding:12px 14px;margin:14px 0;font-size:13px;
-    display:flex;gap:10px;align-items:flex-start;box-shadow:var(--shadow);
-  }
-  .disclaimer i{color:var(--gelb);margin-top:2px}
-  .disclaimer.mini{font-size:11.5px;padding:8px 12px;margin:10px 0;background:#fff;border-color:var(--line);color:var(--muted)}
-  .disclaimer button{
-    margin-left:auto;border:none;background:var(--gelb);color:#fff;font-weight:600;
-    padding:7px 12px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12px;white-space:nowrap;
-  }
+  /* Views */
+  .view{display:none;padding-top:16px;animation:fade .25s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .pagetitle{font-size:22px;font-weight:800;letter-spacing:-.5px;margin:4px 2px 14px}
+  .sub{color:var(--muted);font-size:13px}
 
   /* Search */
-  .searchbar{position:relative;margin:12px 0}
-  .searchbar i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .searchbar{position:relative;margin:4px 0 14px}
+  .searchbar i.si{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px}
   .searchbar input{
-    width:100%;padding:14px 14px 14px 42px;border:1px solid var(--line);border-radius:14px;
-    font-family:inherit;font-size:15px;background:var(--card);box-shadow:var(--shadow);outline:none;
+    width:100%;padding:15px 16px 15px 44px;border:1px solid var(--line);border-radius:14px;
+    font-family:inherit;font-size:15px;background:var(--card);box-shadow:var(--shadow);outline:none;color:var(--ink);
   }
-  .searchbar input:focus{border-color:var(--brand2)}
-  .hint{font-size:12px;color:var(--muted);margin:-4px 4px 4px}
+  .searchbar input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+  .searchbar .clearx{position:absolute;right:12px;top:50%;transform:translateY(-50%);border:none;background:none;
+    color:var(--muted);font-size:16px;cursor:pointer;display:none}
+  /* Suggest dropdown */
+  .suggest{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--card);border:1px solid var(--line);
+    border-radius:14px;box-shadow:var(--shadow-lg);z-index:25;overflow:hidden;display:none}
+  .suggest.open{display:block}
+  .suggest .srow{display:flex;gap:10px;align-items:center;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--line)}
+  .suggest .srow:last-child{border-bottom:none}
+  .suggest .srow:active{background:var(--bg)}
+  .suggest .srow .ti{font-size:14px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .suggest .mini-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
 
-  /* Tabs */
-  .tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch}
-  .tabs::-webkit-scrollbar{display:none}
-  .tab{
-    flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);
-    padding:9px 14px;border-radius:999px;font-family:inherit;font-size:13px;font-weight:500;
-    cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:center;
-  }
-  .tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  /* Home tiles */
+  .tiles{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px}
+  @media (min-width:560px){ .tiles{grid-template-columns:repeat(3,1fr)} }
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;
+    box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .08s ease}
+  .tile:active{transform:scale(.98)}
+  @media (min-width:560px){ .tile{flex-direction:column;text-align:center;gap:10px;padding:22px 14px} }
+  .tile .tic{width:52px;height:52px;border-radius:14px;flex:0 0 auto;display:grid;place-items:center;font-size:24px;
+    background:rgba(37,99,235,.1);color:var(--accent)}
+  .tile h3{margin:0;font-size:16px;font-weight:700}
+  .tile p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
 
-  /* Legend */
-  .legend{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
-  .legend span{font-size:11.5px;display:flex;align-items:center;gap:6px;color:var(--muted)}
-  .dot{width:12px;height:12px;border-radius:50%}
-  .dot.rot{background:var(--rot)} .dot.gelb{background:var(--gelb)} .dot.gruen{background:var(--gruen)}
+  .sectiontitle{font-size:12px;font-weight:700;color:var(--muted);margin:18px 4px 10px;text-transform:uppercase;letter-spacing:.6px}
 
-  /* Cards list */
-  .results{display:grid;gap:10px}
-  .card{
-    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    box-shadow:var(--shadow);padding:12px;display:flex;gap:12px;align-items:center;cursor:pointer;
-    transition:transform .06s ease;
-  }
+  /* Category cards */
+  .catcards{display:grid;grid-template-columns:1fr;gap:12px}
+  @media (min-width:760px){ .catcards{grid-template-columns:repeat(3,1fr)} }
+  .catcard{position:relative;overflow:hidden;border-radius:var(--radius);padding:20px;cursor:pointer;
+    color:#fff;box-shadow:var(--shadow);min-height:118px;display:flex;flex-direction:column;justify-content:space-between;
+    transition:transform .08s ease}
+  .catcard:active{transform:scale(.98)}
+  .catcard.btm{background:linear-gradient(135deg,#7c3aed,#a855f7)}
+  .catcard.waffe{background:linear-gradient(135deg,#dc2626,#ef4444)}
+  .catcard.arznei{background:linear-gradient(135deg,#0891b2,#06b6d4)}
+  .catcard .cic{font-size:30px}
+  .catcard h3{margin:6px 0 2px;font-size:18px;font-weight:800}
+  .catcard p{margin:0;font-size:12.5px;opacity:.92}
+  .catcard .arrow{position:absolute;top:18px;right:18px;font-size:16px;opacity:.85}
+
+  /* Results / cards */
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+  .toolbar .count{font-size:12.5px;color:var(--muted);flex:1}
+  .filterbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:11px;
+    padding:9px 13px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;gap:7px;align-items:center}
+  .filterbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .results{display:grid;gap:12px;grid-template-columns:1fr}
+  @media (min-width:680px){ .results{grid-template-columns:repeat(2,1fr)} }
+  @media (min-width:1000px){ .results{grid-template-columns:repeat(3,1fr)} }
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);
+    padding:12px;display:flex;gap:13px;align-items:center;cursor:pointer;transition:transform .08s ease,box-shadow .2s}
   .card:active{transform:scale(.99)}
-  .thumb{
-    width:60px;height:60px;border-radius:12px;flex:0 0 auto;overflow:hidden;
-    background:#f1f5f9;display:grid;place-items:center;border:1px solid var(--line);
-  }
+  .card:hover{box-shadow:var(--shadow)}
+  .thumb{width:62px;height:62px;border-radius:14px;flex:0 0 auto;overflow:hidden;background:#f1f5f9;
+    display:grid;place-items:center;border:1px solid var(--line)}
   .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-  .thumb .ph{font-size:24px;color:#94a3b8}
   .card .body{flex:1;min-width:0}
-  .card .body h3{margin:0;font-size:15px;font-weight:600}
-  .card .body .sub{font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .badge{
-    flex:0 0 auto;font-size:11px;font-weight:600;padding:5px 9px;border-radius:999px;
-    display:flex;gap:5px;align-items:center;white-space:nowrap;
-  }
+  .card .body h3{margin:0;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .body .cat{font-size:11px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  .card .body .desc{font-size:12px;color:var(--muted);margin-top:2px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  .badge{flex:0 0 auto;font-size:10.5px;font-weight:700;padding:5px 9px;border-radius:999px;display:flex;gap:5px;align-items:center;white-space:nowrap}
   .badge.rot{background:var(--rot-bg);color:var(--rot);border:1px solid var(--rot-line)}
   .badge.gelb{background:var(--gelb-bg);color:var(--gelb);border:1px solid var(--gelb-line)}
   .badge.gruen{background:var(--gruen-bg);color:var(--gruen);border:1px solid var(--gruen-line)}
+  .favstar{flex:0 0 auto;border:none;background:none;color:#cbd5e1;font-size:18px;cursor:pointer;padding:4px}
+  .favstar.on{color:#f59e0b}
 
-  .empty{text-align:center;color:var(--muted);padding:40px 10px;font-size:14px}
-  .empty i{font-size:34px;display:block;margin-bottom:10px;opacity:.5}
-
-  .count{font-size:12px;color:var(--muted);margin:2px 4px 8px}
+  .empty{text-align:center;color:var(--muted);padding:48px 14px;font-size:14px;grid-column:1/-1}
+  .empty i{font-size:38px;display:block;margin-bottom:12px;opacity:.4}
 
   /* Bottom nav */
-  nav.bottom{
-    position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
-    display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom);
-  }
-  nav.bottom button{
-    flex:1;border:none;background:none;font-family:inherit;color:var(--muted);
-    padding:10px 4px;cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:center;font-size:11px;
-  }
-  nav.bottom button i{font-size:19px}
-  nav.bottom button.active{color:var(--brand)}
+  nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
+    display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 10px rgba(15,23,42,.04)}
+  nav.bottom button{flex:1;border:none;background:none;font-family:inherit;color:var(--muted);
+    padding:9px 4px;cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:center;font-size:10.5px;font-weight:600}
+  nav.bottom button i{font-size:18px}
+  nav.bottom button.active{color:var(--accent)}
 
-  /* Views */
-  .view{display:none;padding-top:6px}
-  .view.active{display:block;animation:fade .2s ease}
-  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-
-  /* Detail modal */
-  .modal{
-    position:fixed;inset:0;background:rgba(17,24,39,.55);z-index:60;display:none;
-    align-items:flex-end;justify-content:center;
-  }
+  /* Modal / detail */
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:60;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
   .modal.open{display:flex}
-  .sheet{
-    background:var(--bg);width:100%;max-width:760px;max-height:92vh;overflow-y:auto;
-    border-radius:20px 20px 0 0;animation:up .25s ease;
-  }
-  @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
-  .sheet .hero{position:relative;background:#0f172a}
-  .sheet .hero img{width:100%;max-height:280px;object-fit:cover;display:block}
-  .sheet .hero .ph{height:200px;display:grid;place-items:center;font-size:72px;color:#475569}
-  .sheet .hero .close{
-    position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;
-    background:rgba(0,0,0,.5);color:#fff;border:none;font-size:18px;cursor:pointer;
-  }
-  .sheet .hero .imgnote{position:absolute;bottom:8px;left:12px;font-size:10.5px;color:#cbd5e1;background:rgba(0,0,0,.45);padding:3px 8px;border-radius:8px}
-  .sheet .pad{padding:16px 16px 30px}
-  .sheet h2{margin:0 0 4px;font-size:21px}
-  .sheet .syn{font-size:13px;color:var(--muted);margin-bottom:14px}
-  .ampel-big{
-    border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;margin-bottom:14px;font-weight:600;
-  }
-  .ampel-big.rot{background:var(--rot-bg);color:var(--rot);border:1px solid var(--rot-line)}
-  .ampel-big.gelb{background:var(--gelb-bg);color:var(--gelb);border:1px solid var(--gelb-line)}
-  .ampel-big.gruen{background:var(--gruen-bg);color:var(--gruen);border:1px solid var(--gruen-line)}
-  .ampel-big .ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:22px;color:#fff;flex:0 0 auto}
-  .ampel-big.rot .ic{background:var(--rot)} .ampel-big.gelb .ic{background:var(--gelb)} .ampel-big.gruen .ic{background:var(--gruen)}
-  .ampel-big .t1{font-size:16px} .ampel-big .t2{font-size:12px;font-weight:500;opacity:.85}
-  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
-  .field .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:4px}
-  .field .val{font-size:14px}
-  .field .val.law{font-weight:600}
-  .sources a{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
-    border-radius:12px;padding:11px 14px;margin-bottom:8px;text-decoration:none;color:var(--ink);font-size:13px}
-  .sources a i.ext{margin-left:auto;color:var(--muted)}
-  .sources a i.src{color:#2563eb}
+  .sheet{background:var(--bg);width:100%;max-width:680px;max-height:94vh;overflow-y:auto;border-radius:24px 24px 0 0;animation:up .3s cubic-bezier(.2,.8,.2,1);-webkit-overflow-scrolling:touch}
+  @keyframes up{from{transform:translateY(60px);opacity:.5}to{transform:none;opacity:1}}
+  @media (min-width:760px){ .modal{align-items:center} .sheet{max-width:560px;max-height:90vh;border-radius:24px} }
+  .hero{position:relative;background:var(--primary);min-height:200px}
+  .hero img{width:100%;max-height:300px;object-fit:cover;display:block;cursor:zoom-in}
+  .hero .grad{position:absolute;inset:0;background:linear-gradient(to top,rgba(15,23,42,.85),transparent 55%)}
+  .hero .htop{position:absolute;top:14px;left:14px;right:14px;display:flex;gap:8px}
+  .hero .htop button{width:40px;height:40px;border-radius:50%;border:none;background:rgba(15,23,42,.55);color:#fff;font-size:17px;cursor:pointer;backdrop-filter:blur(4px)}
+  .hero .htop .sp{flex:1}
+  .hero .hmeta{position:absolute;left:18px;right:18px;bottom:14px;color:#fff}
+  .hero .hmeta .cat{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.9}
+  .hero .hmeta h2{margin:3px 0 8px;font-size:23px;font-weight:800;letter-spacing:-.4px;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+  .pad{padding:16px 16px 36px}
+
+  .statusbig{border-radius:14px;padding:13px 14px;display:flex;gap:12px;align-items:center;margin-bottom:14px;font-weight:600}
+  .statusbig.rot{background:var(--rot-bg);color:var(--rot);border:1px solid var(--rot-line)}
+  .statusbig.gelb{background:var(--gelb-bg);color:var(--gelb);border:1px solid var(--gelb-line)}
+  .statusbig.gruen{background:var(--gruen-bg);color:var(--gruen);border:1px solid var(--gruen-line)}
+  .statusbig .ic{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:20px;color:#fff;flex:0 0 auto}
+  .statusbig.rot .ic{background:var(--rot)} .statusbig.gelb .ic{background:var(--gelb)} .statusbig.gruen .ic{background:var(--gruen)}
+  .statusbig .t1{font-size:15px} .statusbig .t2{font-size:12px;font-weight:500;opacity:.85}
+
+  .block{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:13px;box-shadow:var(--shadow-sm)}
+  .block > h4{margin:0 0 11px;font-size:14px;font-weight:700;display:flex;gap:9px;align-items:center}
+  .block > h4 i{color:var(--accent);font-size:15px}
+  .block.legal{border-left:4px solid var(--accent)}
+  .block.danger{background:var(--rot-bg);border-color:var(--rot-line)}
+  .block.danger > h4{color:var(--rot)} .block.danger > h4 i{color:var(--rot)}
+  .row{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .row:last-child{border-bottom:none}
+  .row .k{flex:0 0 38%;color:var(--muted);font-weight:600}
+  .row .v{flex:1;font-weight:500}
+  .row .v.strong{font-weight:700}
+  .conseq{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .conseq:last-child{border-bottom:none}
+  .conseq i{color:var(--rot);margin-top:2px;font-size:13px}
+  .conseq b{display:block;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  .conseq span{font-size:13.5px}
+  ul.feat{list-style:none;margin:0;padding:0}
+  ul.feat li{display:flex;gap:9px;padding:6px 0;font-size:13.5px;align-items:flex-start}
+  ul.feat li i{color:var(--accent);font-size:7px;margin-top:7px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap}
+  .chip{background:#eef2ff;color:#4338ca;font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px}
+  .gallery{display:flex;gap:9px;overflow-x:auto;padding-bottom:4px}
+  .gallery::-webkit-scrollbar{display:none}
+  .gallery .gimg{position:relative;flex:0 0 auto;width:92px;height:92px;border-radius:13px;overflow:hidden;border:1px solid var(--line);background:var(--primary);cursor:zoom-in}
+  .gallery .gimg img{width:100%;height:100%;object-fit:cover}
+  .gallery .gimg .tagx{position:absolute;top:3px;left:3px;font-size:8.5px;background:rgba(0,0,0,.6);color:#fff;padding:1px 6px;border-radius:6px}
+  .gallery .gimg .del{position:absolute;top:3px;right:3px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(220,38,38,.92);color:#fff;font-size:10px;cursor:pointer}
+  .similar{display:flex;gap:11px;overflow-x:auto;padding-bottom:6px}
+  .similar::-webkit-scrollbar{display:none}
+  .simcard{flex:0 0 132px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;box-shadow:var(--shadow-sm)}
+  .simcard .si{height:80px;background:#f1f5f9;display:grid;place-items:center;overflow:hidden}
+  .simcard .si img{width:100%;height:100%;object-fit:cover}
+  .simcard .st{padding:8px 10px}
+  .simcard .st h5{margin:0;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .simcard .st .b{display:inline-block;margin-top:4px;width:8px;height:8px;border-radius:50%}
+  .srclink{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:8px;text-decoration:none;color:var(--ink);font-size:13px}
+  .srclink i.ext{margin-left:auto;color:var(--muted)}
+  .mini-disc{font-size:11.5px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;display:flex;gap:9px;margin-top:6px}
+  .mini-disc i{color:var(--gelb);margin-top:1px}
+
+  /* Lightbox */
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:90;display:none;align-items:center;justify-content:center;padding:20px}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:100%;max-height:90vh;border-radius:10px}
+  .lightbox .lbclose{position:absolute;top:18px;right:18px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;border:none;font-size:20px;cursor:pointer}
+
+  /* Buttons */
+  .btn{border:none;border-radius:14px;padding:14px 18px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;gap:9px;align-items:center;justify-content:center;width:100%}
+  .btn.primary{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.3)}
+  .btn.primary:active{background:var(--accent-d)}
+  .btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);margin-top:10px}
+  .btn.lg{padding:18px;font-size:16px}
 
   /* Camera */
-  .cam-box{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);text-align:center;margin-bottom:12px}
-  .cam-preview{width:100%;border-radius:14px;margin-bottom:12px;display:none;max-height:320px;object-fit:contain;background:#0f172a}
-  .btn{
-    border:none;border-radius:12px;padding:13px 18px;font-family:inherit;font-size:15px;font-weight:600;
-    cursor:pointer;display:inline-flex;gap:9px;align-items:center;justify-content:center;
-  }
-  .btn.primary{background:var(--brand);color:#fff;width:100%}
-  .btn.ghost{background:#f1f5f9;color:var(--ink);width:100%;margin-top:8px}
-  .btn.sm{padding:9px 12px;font-size:13px}
-  .ai-status{font-size:13px;color:var(--muted);margin:10px 0;min-height:18px}
-  .ai-status.work{color:var(--brand)}
-  .ai-status.err{color:var(--rot)}
-  .filterrow{display:flex;gap:8px;margin:10px 0}
-  .filterrow input{flex:1;padding:11px;border:1px solid var(--line);border-radius:11px;font-family:inherit;font-size:14px}
+  .cam-hero{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);text-align:center;margin-bottom:14px}
+  .cam-circle{width:96px;height:96px;border-radius:50%;background:rgba(37,99,235,.1);color:var(--accent);display:grid;place-items:center;font-size:40px;margin:4px auto 16px}
+  .cam-preview{width:100%;border-radius:14px;margin-bottom:14px;display:none;max-height:300px;object-fit:contain;background:var(--primary)}
+  .provrow{display:flex;gap:8px;margin:14px 0 6px}
+  .provbtn{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center}
+  .provbtn i{font-size:17px}
+  .provbtn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .provlinks{display:none;gap:8px;margin:8px 0;flex-wrap:wrap}
+  .provlinks a{flex:1;min-width:130px;text-align:center;text-decoration:none;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:11px;padding:11px;font-size:13px;font-weight:700}
+  .ai-status{font-size:13px;color:var(--muted);margin:12px 0;min-height:18px}
+  .ai-status.work{color:var(--accent)} .ai-status.err{color:var(--rot)}
+  .analyzing{text-align:center;padding:30px 10px;display:none}
+  .analyzing.on{display:block}
+  .spinner{width:54px;height:54px;border:5px solid var(--line);border-top-color:var(--accent);border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .pctrow{display:flex;gap:11px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px;margin-bottom:9px;cursor:pointer}
+  .pctrow .pthumb{width:48px;height:48px;border-radius:11px;overflow:hidden;flex:0 0 auto;background:#f1f5f9}
+  .pctrow .pthumb img{width:100%;height:100%;object-fit:cover}
+  .pctrow .pbody{flex:1;min-width:0}
+  .pctrow .pbody h4{margin:0 0 5px;font-size:14px;font-weight:700}
+  .pbar{height:7px;border-radius:99px;background:var(--line);overflow:hidden}
+  .pbar > span{display:block;height:100%;background:var(--accent);border-radius:99px}
+  .pctnum{font-size:15px;font-weight:800;color:var(--accent);flex:0 0 auto}
 
-  /* Settings / Info */
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
-  .panel h3{margin:0 0 10px;font-size:16px;display:flex;gap:8px;align-items:center}
-  .panel p{font-size:13.5px;color:var(--ink);margin:0 0 10px}
+  /* Panels (Profil/Filter) */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-sm);margin-bottom:13px}
+  .panel h3{margin:0 0 11px;font-size:15px;font-weight:700;display:flex;gap:9px;align-items:center}
+  .panel h3 i{color:var(--accent)}
+  .panel p{font-size:13px;color:var(--ink);margin:0 0 10px}
   .panel small{color:var(--muted)}
-  .panel input[type=password],.panel input[type=text]{width:100%;padding:11px;border:1px solid var(--line);border-radius:11px;font-family:inherit;font-size:14px;margin-bottom:8px}
-  .srclist a{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:14px}
+  .panel input[type=password],.panel input[type=text],.panel select{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;font-family:inherit;font-size:14px;margin-bottom:9px;background:var(--card);color:var(--ink)}
+  .panel label.fld{font-size:12px;font-weight:600;color:var(--muted);display:block;margin:2px 2px 6px}
+  .srclist a{display:flex;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:14px}
   .srclist a:last-child{border-bottom:none}
   .srclist a i.ext{margin-left:auto;color:var(--muted)}
   .srclist a .meta{display:block;font-size:11.5px;color:var(--muted)}
-  .tag{display:inline-block;font-size:10.5px;background:#eef2ff;color:#4338ca;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
-  .sectiontitle{font-size:13px;font-weight:600;color:var(--muted);margin:16px 4px 4px;text-transform:uppercase;letter-spacing:.5px}
-
-  /* Photo gallery in detail */
-  .gallery{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px}
-  .gallery::-webkit-scrollbar{display:none}
-  .gallery .gimg{position:relative;flex:0 0 auto;width:88px;height:88px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#0f172a;cursor:zoom-in}
-  .gallery .gimg img{width:100%;height:100%;object-fit:cover;display:block}
-  .gallery .gimg .tagx{position:absolute;top:3px;left:3px;font-size:9px;background:rgba(0,0,0,.6);color:#fff;padding:1px 6px;border-radius:6px}
-  .gallery .gimg .del{position:absolute;top:3px;right:3px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(220,38,38,.92);color:#fff;font-size:11px;cursor:pointer;line-height:1}
-  .clickhint{font-size:11px;color:var(--muted);margin:-2px 2px 10px}
-
-  /* Lightbox */
-  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:80;display:none;align-items:center;justify-content:center;padding:20px}
-  .lightbox.open{display:flex}
-  .lightbox img{max-width:100%;max-height:90vh;border-radius:10px}
-  .lightbox .lbclose{position:absolute;top:16px;right:16px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;border:none;font-size:20px;cursor:pointer}
-
-  /* Upload / assign */
-  .warnbox{background:var(--rot-bg);border:1px solid var(--rot-line);color:#7f1d1d;border-radius:var(--radius);
-    padding:14px;margin-bottom:12px;font-size:13.5px;display:flex;gap:10px;align-items:flex-start;box-shadow:var(--shadow)}
-  .warnbox i{color:var(--rot);font-size:18px;margin-top:1px}
-  .uploadprev{width:100%;max-height:240px;object-fit:contain;border-radius:12px;background:#0f172a;display:none;margin-bottom:10px}
-  .panel select{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;font-family:inherit;font-size:14px;margin-bottom:10px;background:var(--card)}
-  .panel label.fld{font-size:12px;font-weight:600;color:var(--muted);display:block;margin:2px 2px 5px}
+  .warnbox{background:var(--rot-bg);border:1px solid var(--rot-line);color:#7f1d1d;border-radius:14px;padding:13px;margin-bottom:12px;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+  .warnbox i{color:var(--rot);font-size:17px;margin-top:1px}
+  .uploadprev{width:100%;max-height:220px;object-fit:contain;border-radius:12px;background:var(--primary);display:none;margin-bottom:10px}
   .myimg-row{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:8px}
-  .myimg-row img{width:54px;height:54px;border-radius:9px;object-fit:cover;cursor:zoom-in;flex:0 0 auto}
+  .myimg-row img{width:50px;height:50px;border-radius:9px;object-fit:cover;cursor:zoom-in;flex:0 0 auto}
   .myimg-row .info{flex:1;min-width:0;font-size:13px}
   .myimg-row .info small{color:var(--muted)}
-  .myimg-row button{border:none;background:#fef2f2;color:var(--rot);border:1px solid var(--rot-line);border-radius:9px;padding:8px 10px;cursor:pointer;font-family:inherit;font-size:12px}
+  .myimg-row button{border:1px solid var(--rot-line);background:var(--rot-bg);color:var(--rot);border-radius:9px;padding:8px 10px;cursor:pointer;font-family:inherit;font-size:12px}
 
-  /* KI-Anbieterwahl */
-  .provrow{display:flex;gap:8px;margin:12px 0 8px}
-  .provbtn{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;
-    padding:10px 6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;
-    flex-direction:column;gap:4px;align-items:center}
-  .provbtn i{font-size:18px}
-  .provbtn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
-  .provlinks{display:none;gap:8px;margin:8px 0;flex-wrap:wrap}
-  .provlinks a{flex:1;min-width:120px;text-align:center;text-decoration:none;background:#eef2ff;color:#4338ca;
-    border:1px solid #c7d2fe;border-radius:11px;padding:10px;font-size:13px;font-weight:600}
+  /* Filter sheet */
+  .chipsel{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .chipsel button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .chipsel button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 
-  /* Lupen-Intro (Splash) */
-  #splash{position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,#1f2937,#374151);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
-    transition:opacity .5s ease;color:#fff}
+  /* Splash */
+  #splash{position:fixed;inset:0;z-index:200;background:var(--primary);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .5s ease;color:#fff}
   #splash.hide{opacity:0;pointer-events:none}
-  #splash .scene{position:relative;width:240px;height:90px;display:flex;align-items:center;justify-content:space-around;font-size:46px}
-  #splash .scene .lupe{position:absolute;top:6px;left:0;font-size:52px;animation:fly 1.7s ease-in-out forwards}
-  #splash .stitle{font-size:26px;font-weight:700;letter-spacing:.5px;opacity:0;animation:pop .5s ease .7s forwards}
-  #splash .ssub{font-size:13px;opacity:0;animation:pop .5s ease 1s forwards}
-  @keyframes fly{
-    0%{left:-10px;top:30px;transform:scale(.7) rotate(-15deg)}
-    35%{left:90px;top:-4px;transform:scale(1.15) rotate(5deg)}
-    65%{left:165px;top:30px;transform:scale(1) rotate(-8deg)}
-    100%{left:200px;top:6px;transform:scale(1.1) rotate(0)}
-  }
+  #splash .scene{position:relative;width:240px;height:90px;display:flex;align-items:center;justify-content:space-around;font-size:44px}
+  #splash .scene .lupe{position:absolute;top:6px;left:0;font-size:50px;animation:fly 1.7s ease-in-out forwards}
+  #splash .stitle{font-size:25px;font-weight:800;letter-spacing:-.3px;opacity:0;animation:pop .5s ease .7s forwards}
+  #splash .ssub{font-size:12.5px;opacity:0;color:#94a3b8;animation:pop .5s ease 1s forwards}
+  @keyframes fly{0%{left:-10px;top:30px;transform:scale(.7) rotate(-15deg)}35%{left:90px;top:-4px;transform:scale(1.15) rotate(5deg)}65%{left:165px;top:30px;transform:scale(1) rotate(-8deg)}100%{left:200px;top:6px;transform:scale(1.1) rotate(0)}}
   @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion:reduce){
-    #splash .scene .lupe,#splash .stitle,#splash .ssub{animation:none;opacity:1;left:200px;top:6px}
-  }
+  @media (prefers-reduced-motion:reduce){#splash .scene .lupe,#splash .stitle,#splash .ssub{animation:none;opacity:1}}
 </style>
 </head>
 <body>
 
-<!-- LUPEN-INTRO -->
+<!-- SPLASH -->
 <div id="splash">
-  <div class="scene">
-    <span>💊</span><span>🔫</span><span>🧪</span>
-    <span class="lupe">🔍</span>
-  </div>
-  <div class="stitle">RechtsAmpel</div>
-  <div class="ssub">Schnell rechtlich einordnen…</div>
+  <div class="scene"><span>💊</span><span>🔫</span><span>💉</span><span class="lupe">🔍</span></div>
+  <div class="stitle">Datenbank</div>
+  <div class="ssub">Identifizieren · Einordnen · Vergleichen</div>
 </div>
 
 <header class="app">
   <div class="wrap">
-    <div class="logo"><span class="d1">●</span><span class="d2">●</span><span class="d3">●</span></div>
-    <div>
-      <h1>RechtsAmpel</h1>
-      <p>Waffen · Betäubungsmittel · Arzneimittel – schnell eingeordnet</p>
-    </div>
+    <div class="logo">🔎</div>
+    <h1>Datenbank</h1>
+    <button class="iconbtn" onclick="go('profil',document.getElementById('nav-profil'))" aria-label="Profil"><i class="fa-solid fa-user"></i></button>
   </div>
 </header>
 
 <main class="wrap">
 
-  <!-- SUCHE / LISTE -->
-  <section id="view-suche" class="view active">
-    <div id="disclaimer" class="disclaimer">
-      <i class="fa-solid fa-triangle-exclamation"></i>
-      <div><b>Keine Rechtsberatung.</b> Diese App gibt nur eine grobe Orientierung und übernimmt
-      keine Gewähr für Richtigkeit oder Aktualität. Die Rechtslage kann sich ändern. Im Zweifel
-      Polizei, Behörden oder Anwalt fragen.</div>
-      <button onclick="dismissDisclaimer()">Verstanden</button>
-    </div>
-
+  <!-- ============ START ============ -->
+  <section id="view-start" class="view active">
     <div class="searchbar">
-      <i class="fa-solid fa-magnifying-glass"></i>
+      <i class="fa-solid fa-magnifying-glass si"></i>
+      <input id="homeSearch" type="search" inputmode="search" autocomplete="off"
+        placeholder="Suche nach Begriff, Wirkstoff, Waffe oder Gegenstand"
+        oninput="liveSuggest(this.value,'homeSuggest')" onfocus="liveSuggest(this.value,'homeSuggest')" />
+      <button class="clearx" id="homeClear" onclick="clearHome()"><i class="fa-solid fa-circle-xmark"></i></button>
+      <div class="suggest" id="homeSuggest"></div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile" onclick="go('suche',document.getElementById('nav-start'));focusSearch()">
+        <div class="tic"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <div><h3>Suchen</h3><p>Datenbank durchsuchen</p></div>
+      </div>
+      <div class="tile" onclick="go('kamera',document.getElementById('nav-kamera'))">
+        <div class="tic"><i class="fa-solid fa-camera"></i></div>
+        <div><h3>Foto analysieren</h3><p>Gegenstand fotografieren</p></div>
+      </div>
+      <div class="tile" onclick="go('kategorien',document.getElementById('nav-kategorien'))">
+        <div class="tic"><i class="fa-solid fa-folder-open"></i></div>
+        <div><h3>Kategorien</h3><p>Nach Themen stöbern</p></div>
+      </div>
+    </div>
+
+    <div class="sectiontitle">Kategorien</div>
+    <div class="catcards" id="homeCats"></div>
+
+    <div class="mini-disc" style="margin-top:18px">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <div><b>Keine Rechtsberatung.</b> Diese App gibt nur eine grobe Orientierung, keine Gewähr für Richtigkeit/Aktualität. Im Zweifel Polizei, Behörden oder Anwalt fragen.</div>
+    </div>
+  </section>
+
+  <!-- ============ KATEGORIEN ============ -->
+  <section id="view-kategorien" class="view">
+    <div class="pagetitle">Kategorien</div>
+    <div class="catcards" id="allCats"></div>
+  </section>
+
+  <!-- ============ SUCHE / ERGEBNISSE ============ -->
+  <section id="view-suche" class="view">
+    <div class="pagetitle" id="sucheTitle">Suche</div>
+    <div class="searchbar">
+      <i class="fa-solid fa-magnifying-glass si"></i>
       <input id="search" type="search" inputmode="search" autocomplete="off"
-        placeholder="Name, Wirkstoff oder Prägung (z. B. „T 50“, „Diazepam“)…" oninput="render()" />
+        placeholder="Begriff, Wirkstoff, Prägung…" oninput="render()" />
+      <button class="clearx" id="searchClear" onclick="clearSearch()"><i class="fa-solid fa-circle-xmark"></i></button>
     </div>
-    <div class="hint">Tipp: Tablettenprägung (Zahlen/Buchstaben) direkt eintippen, z. B. <b>52|10</b> oder <b>AL</b>.</div>
-
-    <div class="tabs" id="tabs">
-      <button class="tab active" data-cat="alle" onclick="setCat('alle',this)"><i class="fa-solid fa-layer-group"></i> Alle</button>
-      <button class="tab" data-cat="waffe" onclick="setCat('waffe',this)"><i class="fa-solid fa-gun"></i> Waffen</button>
-      <button class="tab" data-cat="btm" onclick="setCat('btm',this)"><i class="fa-solid fa-cannabis"></i> Drogen/BtM</button>
-      <button class="tab" data-cat="arznei" onclick="setCat('arznei',this)"><i class="fa-solid fa-pills"></i> Tabletten</button>
+    <div class="toolbar">
+      <span class="count" id="count"></span>
+      <button class="filterbtn" id="filterBtn" onclick="openFilter()"><i class="fa-solid fa-sliders"></i> Filter</button>
     </div>
-
-    <div class="legend">
-      <span><span class="dot rot"></span> Rot = Straftat</span>
-      <span><span class="dot gelb"></span> Gelb = Ordnungswidrigkeit</span>
-      <span><span class="dot gruen"></span> Grün = legal / erlaubt</span>
-    </div>
-
-    <div class="count" id="count"></div>
     <div class="results" id="results"></div>
   </section>
 
-  <!-- KAMERA -->
+  <!-- ============ KAMERA ============ -->
   <section id="view-kamera" class="view">
-    <div class="disclaimer mini">
-      <i class="fa-solid fa-camera"></i>
-      <div>Foto aufnehmen → die App (optional mit KI) schlägt <b>ähnliche Einträge</b> vor.
-      <b>Du vergleichst selbst</b> mit den Vergleichsfotos und wählst den passenden aus.
-      Vorschläge sind unverbindlich und können falsch sein.</div>
-    </div>
-
-    <div class="cam-box">
+    <div class="pagetitle">Foto analysieren</div>
+    <div class="cam-hero">
       <img id="camPreview" class="cam-preview" alt="Aufgenommenes Foto" />
+      <div id="camPlaceholder"><div class="cam-circle"><i class="fa-solid fa-camera"></i></div></div>
       <input id="camInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="onPhoto(event)" />
-      <button class="btn primary" onclick="document.getElementById('camInput').click()">
-        <i class="fa-solid fa-camera"></i> Foto aufnehmen / wählen
+      <button class="btn primary lg" onclick="document.getElementById('camInput').click()">
+        <i class="fa-solid fa-camera"></i> Kamera öffnen
+      </button>
+      <button class="btn ghost" onclick="document.getElementById('camInput').click()">
+        <i class="fa-solid fa-images"></i> Bild aus Galerie wählen
       </button>
 
-      <div style="text-align:left;margin-top:14px">
-        <label class="fld" style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin:2px 2px 5px">KI auswählen</label>
+      <div class="analyzing" id="analyzing"><div class="spinner"></div><div>Bild wird analysiert…</div></div>
+
+      <div style="text-align:left">
+        <label class="fld" style="margin-top:16px">KI auswählen</label>
         <div class="provrow">
           <button class="provbtn active" id="prov-chatgpt" onclick="setProvider('chatgpt')"><i class="fa-solid fa-comment-dots"></i>ChatGPT</button>
           <button class="provbtn" id="prov-gemini" onclick="setProvider('gemini')"><i class="fa-solid fa-gem"></i>Gemini</button>
@@ -347,101 +387,96 @@
         <i class="fa-solid fa-share-from-square"></i> Foto mit KI prüfen (teilen)
       </button>
       <div class="provlinks" id="provLinks"></div>
-      <button class="btn ghost" id="aiBtn" onclick="runAISuggest()" style="display:none">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> Per API-Schlüssel automatisch (optional)
-      </button>
       <div class="ai-status" id="aiStatus"></div>
-
-      <div class="filterrow">
-        <input id="fFarbe" placeholder="Farbe (z. B. weiß)" oninput="manualSuggest()" />
-        <input id="fForm" placeholder="Form (z. B. rund)" oninput="manualSuggest()" />
-      </div>
-      <div class="filterrow" style="margin-top:0">
-        <input id="fPraeg" placeholder="Prägung / Aufschrift" oninput="manualSuggest()" />
-      </div>
-      <small style="color:var(--muted)">Ohne KI-Schlüssel: Merkmale eintippen, um Vorschläge einzugrenzen.</small>
     </div>
 
-    <div class="count" id="camCount"></div>
     <div class="results" id="camResults"></div>
   </section>
 
-  <!-- HOCHLADEN / ZUORDNEN -->
-  <section id="view-upload" class="view">
-    <div class="warnbox">
-      <i class="fa-solid fa-circle-exclamation"></i>
-      <div><b>Bitte nur zu 100 % sichere Fotos verwenden!</b> Ordne ein Bild nur dann einer Waffe,
-      einem Betäubungsmittel oder einem Arzneimittel zu, wenn du dir absolut sicher bist.
-      Falsche Zuordnungen können zu gefährlichen Fehleinschätzungen führen. Die Fotos werden nur
-      lokal auf diesem Gerät gespeichert.</div>
-    </div>
-
-    <div class="panel">
-      <h3><i class="fa-solid fa-upload"></i> Eigenes Foto zuordnen</h3>
-
-      <label class="fld">1. Foto auswählen / aufnehmen</label>
-      <img id="upPrev" class="uploadprev" alt="Vorschau" />
-      <input id="upInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="onUploadPick(event)" />
-      <button class="btn primary" onclick="document.getElementById('upInput').click()">
-        <i class="fa-solid fa-camera"></i> Foto auswählen / aufnehmen
-      </button>
-
-      <label class="fld" style="margin-top:14px">2. Kategorie</label>
-      <select id="upCat" onchange="fillUploadEntries()">
-        <option value="waffe">Waffe (WaffG)</option>
-        <option value="btm">Betäubungsmittel / Droge (BtMG)</option>
-        <option value="arznei">Arzneimittel / Tablette (AMG)</option>
-      </select>
-
-      <label class="fld">3. Konkreten Eintrag wählen</label>
-      <select id="upEntry"></select>
-
-      <button class="btn primary" style="margin-top:12px" onclick="saveUploadAssign()">
-        <i class="fa-solid fa-link"></i> Foto diesem Eintrag zuordnen
-      </button>
-      <div class="ai-status" id="upStatus"></div>
-    </div>
-
-    <div class="panel">
-      <h3><i class="fa-solid fa-images"></i> Meine zugeordneten Fotos</h3>
-      <div id="myImgs"><small style="color:var(--muted)">Noch keine eigenen Fotos zugeordnet.</small></div>
-    </div>
+  <!-- ============ FAVORITEN ============ -->
+  <section id="view-favoriten" class="view">
+    <div class="pagetitle">Favoriten</div>
+    <div class="results" id="favResults"></div>
   </section>
 
-  <!-- QUELLEN / INFO -->
-  <section id="view-info" class="view">
+  <!-- ============ PROFIL ============ -->
+  <section id="view-profil" class="view">
+    <div class="pagetitle">Profil &amp; Einstellungen</div>
+
     <div class="panel">
-      <h3><i class="fa-solid fa-scale-balanced"></i> Vertrauenswürdige Quellen</h3>
-      <p>Maßgeblich ist immer der amtliche Gesetzestext, nicht diese App. Diese Stellen gelten als verlässlich:</p>
-      <div class="srclist" id="srclist"></div>
+      <h3><i class="fa-solid fa-star"></i> Meine Favoriten</h3>
+      <p id="favSummary"><small>Noch keine Favoriten gespeichert.</small></p>
+      <button class="btn ghost" onclick="go('favoriten',document.getElementById('nav-favoriten'))" style="margin-top:0"><i class="fa-solid fa-star"></i> Favoriten ansehen</button>
     </div>
 
     <div class="panel">
       <h3><i class="fa-solid fa-robot"></i> KI-Bilderkennung (optional)</h3>
-      <p>Für KI-gestützte Foto-Vorschläge kannst du einen Anthropic-API-Schlüssel hinterlegen.
-      Er wird <b>nur lokal auf diesem Gerät</b> gespeichert (localStorage) und ausschließlich an die
-      Anthropic-API gesendet. Ohne Schlüssel funktioniert die App weiter über die Merkmals-Suche.</p>
+      <p>Für automatische Foto-Analyse mit Prozentwerten kannst du einen Anthropic-API-Schlüssel hinterlegen. Er wird <b>nur lokal auf diesem Gerät</b> gespeichert. Ohne Schlüssel funktioniert die App über Suche & Teilen-Funktion.</p>
       <input id="apiKey" type="password" placeholder="sk-ant-… (optional)" />
-      <button class="btn primary sm" style="width:auto" onclick="saveKey()"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
+      <button class="btn primary" style="width:auto;padding:10px 16px;font-size:13px" onclick="saveKey()"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
       <span id="keyState" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
     </div>
 
     <div class="panel">
+      <h3><i class="fa-solid fa-upload"></i> Eigenes Foto zuordnen</h3>
+      <div class="warnbox"><i class="fa-solid fa-circle-exclamation"></i><div><b>Nur zu 100 % sichere Fotos verwenden!</b> Falsche Zuordnungen können zu gefährlichen Fehleinschätzungen führen. Fotos werden nur lokal gespeichert.</div></div>
+      <img id="upPrev" class="uploadprev" alt="Vorschau" />
+      <input id="upInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="onUploadPick(event)" />
+      <button class="btn ghost" style="margin-top:0" onclick="document.getElementById('upInput').click()"><i class="fa-solid fa-camera"></i> Foto auswählen</button>
+      <label class="fld" style="margin-top:12px">Kategorie</label>
+      <select id="upCat" onchange="fillUploadEntries()"></select>
+      <label class="fld">Eintrag</label>
+      <select id="upEntry"></select>
+      <button class="btn primary" style="margin-top:10px" onclick="saveUploadAssign()"><i class="fa-solid fa-link"></i> Foto zuordnen</button>
+      <div class="ai-status" id="upStatus"></div>
+      <div id="myImgs" style="margin-top:12px"></div>
+    </div>
+
+    <div class="panel">
+      <h3><i class="fa-solid fa-scale-balanced"></i> Vertrauenswürdige Quellen</h3>
+      <p><small>Maßgeblich ist immer der amtliche Gesetzestext, nicht diese App.</small></p>
+      <div class="srclist" id="srclist"></div>
+    </div>
+
+    <div class="panel">
+      <h3><i class="fa-solid fa-database"></i> Datenquelle</h3>
+      <p id="dataSource"><small>Datenquelle wird geladen…</small></p>
+      <small>Wenn Supabase im Code konfiguriert ist, werden die Einträge aus der Datenbank geladen (Änderungen ohne neuen Code-Push). Ohne Konfiguration laufen die eingebetteten Daten.</small>
+    </div>
+
+    <div class="panel">
       <h3><i class="fa-solid fa-circle-info"></i> Über &amp; Haftung</h3>
-      <p><b>RechtsAmpel</b> ist ein Orientierungs-Werkzeug für die grobe rechtliche Einordnung
-      nach <b>Waffengesetz (WaffG)</b>, <b>Betäubungsmittelgesetz (BtMG)</b> und
-      <b>Arzneimittelgesetz (AMG)</b>.</p>
-      <p><small>Die Einstufungen sind vereinfacht und im Zweifel konservativ. Die konkrete
-      Strafbarkeit hängt stark vom Einzelfall ab (Menge, Erlaubnis, Ort, Absicht, Alter usw.).
-      Keine Gewähr, keine Rechtsberatung. Vergleichsfotos sind Symbolbilder.</small></p>
+      <p><small>Orientierungs-Werkzeug nach WaffG, BtMG und AMG. Einstufungen sind vereinfacht und im Zweifel konservativ. Die konkrete Strafbarkeit hängt vom Einzelfall ab (Menge, Erlaubnis, Ort, Alter, Absicht). Keine Gewähr, keine Rechtsberatung. Bilder sind Symbolbilder.</small></p>
+      <button class="btn ghost" style="margin-top:4px" onclick="resetDisclaimer()"><i class="fa-solid fa-rotate-left"></i> Hinweis zurücksetzen</button>
     </div>
   </section>
 
 </main>
 
 <!-- DETAIL -->
-<div class="modal" id="modal" onclick="if(event.target===this)closeDetail()">
-  <div class="sheet" id="sheet"></div>
+<div class="modal" id="modal" onclick="if(event.target===this)closeDetail()"><div class="sheet" id="sheet"></div></div>
+
+<!-- FILTER -->
+<div class="modal" id="filterModal" onclick="if(event.target===this)closeFilter()">
+  <div class="sheet" style="border-radius:24px 24px 0 0"><div class="pad">
+    <h2 style="margin:0 0 14px;font-size:20px;font-weight:800">Filter</h2>
+    <label class="fld">Kategorie</label>
+    <div class="chipsel" id="fCat">
+      <button class="on" data-v="alle" onclick="pickFilter('cat','alle',this)">Alle</button>
+      <button data-v="btm" onclick="pickFilter('cat','btm',this)">Betäubungsmittel</button>
+      <button data-v="waffe" onclick="pickFilter('cat','waffe',this)">Waffen</button>
+      <button data-v="arznei" onclick="pickFilter('cat','arznei',this)">Arzneimittel</button>
+    </div>
+    <label class="fld" style="margin-top:12px">Rechtlicher Status</label>
+    <div class="chipsel" id="fStatus">
+      <button class="on" data-v="alle" onclick="pickFilter('status','alle',this)">Alle</button>
+      <button data-v="rot" onclick="pickFilter('status','rot',this)">Verboten/Straftat</button>
+      <button data-v="gelb" onclick="pickFilter('status','gelb',this)">Eingeschränkt</button>
+      <button data-v="gruen" onclick="pickFilter('status','gruen',this)">Erlaubt</button>
+    </div>
+    <button class="btn primary" style="margin-top:18px" onclick="applyFilter()"><i class="fa-solid fa-check"></i> Anwenden</button>
+    <button class="btn ghost" onclick="resetFilter()">Zurücksetzen</button>
+  </div></div>
 </div>
 
 <!-- LIGHTBOX -->
@@ -451,16 +486,24 @@
 </div>
 
 <nav class="bottom">
-  <button id="nav-suche" class="active" onclick="go('suche',this)"><i class="fa-solid fa-magnifying-glass"></i>Suche</button>
+  <button id="nav-start" class="active" onclick="go('start',this)"><i class="fa-solid fa-house"></i>Start</button>
+  <button id="nav-favoriten" onclick="go('favoriten',this)"><i class="fa-solid fa-star"></i>Favoriten</button>
   <button id="nav-kamera" onclick="go('kamera',this)"><i class="fa-solid fa-camera"></i>Kamera</button>
-  <button id="nav-upload" onclick="go('upload',this)"><i class="fa-solid fa-upload"></i>Hochladen</button>
-  <button id="nav-info" onclick="go('info',this)"><i class="fa-solid fa-scale-balanced"></i>Quellen</button>
+  <button id="nav-kategorien" onclick="go('kategorien',this)"><i class="fa-solid fa-folder-open"></i>Kategorien</button>
+  <button id="nav-profil" onclick="go('profil',this)"><i class="fa-solid fa-user"></i>Profil</button>
 </nav>
 
 <script>
 /* =========================================================================
-   QUELLEN (vertrauenswürdig, amtlich / fachlich)
+   SUPABASE-KONFIGURATION
+   -> Trage hier deine Projekt-URL und den ÖFFENTLICHEN anon-Key ein.
+      (Der anon-Key ist nicht geheim; durch RLS nur Lesen erlaubt.)
+      Solange beide leer sind, nutzt die App die eingebetteten Daten.
    ========================================================================= */
+const SUPABASE_URL = 'https://uxkjuzlwjdhqvflajgvd.supabase.co';        // z. B. 'https://xxxxxxxx.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4a2p1emx3amRocXZmbGFqZ3ZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzY4MjQsImV4cCI6MjA5NTkxMjgyNH0.xynSGidx6_fjGCOhFYIgg3eHCEFvUfb_AVsCzsaD5tU';   // anon public key (oeffentlich, nur Lesen via RLS)
+let DATA_SOURCE = 'lokal eingebettet';
+
 const QUELLEN = {
   waffg:   {titel:'Waffengesetz (WaffG) – amtlich', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/waffg_2002/'},
   waffg_anl:{titel:'WaffG Anlage 2 (verbotene Waffen)', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/waffg_2002/anlage_2.html'},
@@ -547,6 +590,7 @@ const DATA = [
     wirkstoff:'Diamorphin', praegung:'', farbe:'braun/weiß', form:'pulver',
     ampel:'rot', einstufung:'Straftat',
     gesetz:'BtMG Anlage I (nicht verkehrsfähig), § 29',
+    strafmass:'Besitz/Erwerb: Freiheitsstrafe bis zu 5 Jahren oder Geldstrafe (§ 29 BtMG). Handel/Einfuhr nicht geringer Mengen: Freiheitsstrafe nicht unter 1 Jahr (§ 29a/30/30a BtMG). Im Einzelfall kann bei geringen Mengen zum Eigenkonsum von Strafe abgesehen werden.',
     begruendung:'Heroin ist ein nicht verkehrsfähiges Betäubungsmittel. Besitz, Erwerb und Handel sind strafbar.',
     bild:'https://commons.wikimedia.org/wiki/Special:FilePath/Bayer%20Heroin%20bottle.jpg',
     quellen:['btmg','bfarm']
@@ -1000,438 +1044,516 @@ const DATA = [
 ];
 
 /* =========================================================================
-   ICON / FALLBACK je Kategorie
+   ARZNEIMITTEL / AUSWEICHDROGEN – Medikamentenliste (IntraPol)
+   Alle Präparate sind rezeptpflichtig.
+     b=1 -> nur mit Betäubungsmittelrezept (Anlage III BtMG) -> ohne BtM-Rezept Straftat (rot)
+     b=0 -> verschreibungspflichtiges Arzneimittel (gelb)
+     a=1 -> vom BtMG ausgenommene Zubereitung (siehe Anlage III BtMG; Mengen-Schwelle beachten)
+   Kompakt {n:Name, w:Wirkstoff, a:ausgen, b:BtM}; medEntry() baut den vollen Eintrag.
    ========================================================================= */
-const ICON = {waffe:'fa-gun', btm:'fa-cannabis', arznei:'fa-pills'};
-const AMPEL_TEXT = {rot:'Straftat', gelb:'Ordnungswidrigkeit / Grenzfall', gruen:'Legal / erlaubt'};
-const AMPEL_ICON = {rot:'fa-ban', gelb:'fa-triangle-exclamation', gruen:'fa-circle-check'};
+const MEDIKAMENTE = [{"n":"Adumbran 10 mg","w":"Oxazepam","a":1,"b":0},{"n":"Alprazolam 1 mg","w":"Alprazolam","a":1,"b":0},{"n":"Bromazanil 6 mg - Hexal","w":"Bromazepam","a":1,"b":0},{"n":"Bromazepam-ratiopharm 6 mg","w":"Bromazepam","a":1,"b":0},{"n":"Buprenaddict 2 mg Sublingual - Hexal","w":"Buprenorphin","a":0,"b":1},{"n":"Buprenaddict 8 mg - Hexal","w":"Buprenorphin","a":0,"b":1},{"n":"Buprenorphin 8 mg - Actavis","w":"Buprenorphin","a":0,"b":1},{"n":"Buprenorphin 8 mg - Ethy","w":"Buprenorphin","a":0,"b":1},{"n":"Bupensan 4 mg Sublingual - G.L. Pharma","w":"Buprenorphin","a":0,"b":1},{"n":"Bupensan 8 mg Sublingual - G.L. Pharma","w":"Buprenorphin","a":0,"b":1},{"n":"Codeintropfen CT","w":"Codein","a":1,"b":0},{"n":"Codicaps","w":"Codein","a":1,"b":0},{"n":"Concerta 18 mg","w":"Methylphenidat","a":0,"b":1},{"n":"Concerta 54 mg","w":"Methylphenidat","a":0,"b":1},{"n":"DHC-Lösung 2,5%","w":"Dihydrocodein","a":0,"b":1},{"n":"Diazepam 10 mg - AbZ Pharma","w":"Diazepam","a":1,"b":0},{"n":"Diazepam 10 mg - ratio","w":"Diazepam","a":1,"b":0},{"n":"Diazepam - Stada","w":"Diazepam","a":1,"b":0},{"n":"Dipidolor","w":"Piritramid","a":0,"b":1},{"n":"Doxepin-neuraxpharm Lösung","w":"Doxepin","a":0,"b":0},{"n":"Eptadone Lösung","w":"Methadon","a":0,"b":1},{"n":"Fentanyl (Pflaster) - Aliud","w":"Fentanyl","a":0,"b":1},{"n":"Flunitrazepam - neuraxpharm","w":"Flunitrazepam","a":0,"b":1},{"n":"Hydromorphon 16 mg Retard - Winthrop Pharma","w":"Hydromorphon","a":0,"b":1},{"n":"Ketanest","w":"Ketamin","a":0,"b":0},{"n":"Ketamin","w":"Ketamin","a":0,"b":0},{"n":"Lexotanil - Roche","w":"Bromazepam","a":1,"b":0},{"n":"L-Polamidon","w":"Levomethadon","a":0,"b":1},{"n":"L-Poladdict 5 mg - Hexal","w":"Levomethadon","a":0,"b":1},{"n":"Lyrica 300 mg - Pfizer","w":"Pregabalin","a":0,"b":0},{"n":"Medikinet 20 mg","w":"Methylphenidat","a":0,"b":1},{"n":"Medikinet adult 10 mg Hartkapsel - Medice Pharma","w":"Methylphenidat","a":0,"b":1},{"n":"Medikinet adult 20 mg Hartkapsel - Medice Pharma","w":"Methylphenidat","a":0,"b":1},{"n":"Medikinet adult 30 mg Hartkapsel - Medice Pharma","w":"Methylphenidat","a":0,"b":1},{"n":"Medikinet adult 40 mg Hartkapsel - Medice Pharma","w":"Methylphenidat","a":0,"b":1},{"n":"Methaddict 10 mg","w":"Methadon","a":0,"b":1},{"n":"Methaddict 40 mg - Hexal","w":"Methadon","a":0,"b":1},{"n":"Methadon-HCL Lösung","w":"Methadon","a":0,"b":1},{"n":"Methadon","w":"Methadon","a":0,"b":1},{"n":"Methylpheni TAD","w":"Methylphenidat","a":0,"b":1},{"n":"Mirtazapin","w":"Mirtazapin","a":0,"b":0},{"n":"Morphin","w":"Morphin","a":0,"b":1},{"n":"MST","w":"Morphin","a":0,"b":1},{"n":"Oxazepam 10 Stada","w":"Oxazepam","a":1,"b":0},{"n":"Oxazepam-ratiopharm","w":"Oxazepam","a":1,"b":0},{"n":"Oxycodon-HCL 40 mg - AbZ Pharma","w":"Oxycodon","a":0,"b":1},{"n":"Oxycodon comp 40 mg / 20 mg - Hexal","w":"Oxycodon / Naloxon","a":0,"b":1},{"n":"Oxygesic 80 mg - Mundipharma","w":"Oxycodon","a":0,"b":1},{"n":"Paracetamol comp. STADA","w":"Codein","a":1,"b":0},{"n":"Paracodin","w":"Codein","a":1,"b":0},{"n":"Paracodin - retard","w":"Dihydrocodein","a":1,"b":0},{"n":"Piritramid","w":"Piritramid","a":0,"b":1},{"n":"Pregabalin 225 mg - AbZ Pharma","w":"Pregabalin","a":0,"b":0},{"n":"Ritalin","w":"Methylphenidat","a":0,"b":1},{"n":"Ritalin LA 10 mg - Novartis Pharma","w":"Methylphenidat","a":0,"b":1},{"n":"Ritalin LA 20 mg - Novartis Pharma","w":"Methylphenidat","a":0,"b":1},{"n":"Ritalin LA 40 mg - Novartis Pharma","w":"Methylphenidat","a":0,"b":1},{"n":"Rivotril - Roche","w":"Clonazepam","a":1,"b":0},{"n":"Rohypnol - Roche","w":"Flunitrazepam","a":0,"b":1},{"n":"Sevredol 10 mg","w":"Morphin","a":0,"b":1},{"n":"Stangyl","w":"Trimipramin","a":0,"b":0},{"n":"Suboxone 2 mg - RB","w":"Buprenorphin / Naloxon","a":0,"b":1},{"n":"Suboxone 8 mg - RB","w":"Buprenorphin / Naloxon","a":0,"b":1},{"n":"Substitol 200 mg - Mundipharma","w":"Morphinsulfat","a":0,"b":1},{"n":"Subutex 2 mg - RB","w":"Buprenorphin","a":0,"b":1},{"n":"Subutex 8 mg - RB","w":"Buprenorphin","a":0,"b":1},{"n":"Tavor 2,5 mg - Wyeth","w":"Lorazepam","a":1,"b":0},{"n":"Tavor 2,5 mg - Pfizer","w":"Lorazepam","a":1,"b":0},{"n":"Targin 5 mg - Mundipharma","w":"Oxycodon","a":0,"b":1},{"n":"Temgesic / sublingual","w":"Buprenorphin","a":0,"b":1},{"n":"Tilidin - Tabletten","w":"Tilidin","a":1,"b":0},{"n":"Tilidin - Tropfen","w":"Tilidin","a":0,"b":1},{"n":"Tramadol 200 mg Retard Kapseln - ratio","w":"Tramadol","a":0,"b":0},{"n":"Tramal 100 mg Injektionslösung 5x2 Ampullen","w":"Tramadol","a":0,"b":0},{"n":"Valium - Roche","w":"Diazepam","a":1,"b":0},{"n":"Valoron N Lösung - Gödecke","w":"Tilidin","a":0,"b":1},{"n":"Zolpidem","w":"Zolpidem","a":1,"b":0},{"n":"Zopiclon","w":"Zopiclon","a":1,"b":0}];
+function slugify(s){return s.toLowerCase().replace(/[äöü]/g,m=>({'ä':'ae','ö':'oe','ü':'ue'}[m])).replace(/ß/g,'ss').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');}
+function medEntry(m){
+  const btm=m.b===1, ausgen=m.a===1;
+  return {
+    id:'med-'+slugify(m.n), kategorie:'arznei', name:m.n,
+    wirkstoff:m.w, synonyme:[m.w], praegung:'', farbe:'', form:'',
+    ampel: btm?'rot':'gelb',
+    einstufung: btm?'BtM-pflichtig – nur mit Betäubungsmittelrezept':'Verschreibungspflichtig (rezeptpflichtig)',
+    kurz: (btm?'Betäubungsmittel – nur mit BtM-Rezept erhältlich.':'Rezeptpflichtiges Arzneimittel.')+' Wirkstoff: '+m.w+'.',
+    gesetz: btm ? 'BtMG Anlage III (verschreibungsfähig); § 29 BtMG' : ('AMG § 48 (Verschreibungspflicht)'+(ausgen?'; ausgenommene Zubereitung n. Anlage III BtMG':'')),
+    rechtsgrundlage: btm?'Betäubungsmittelgesetz (BtMG), Anlage III':'Arzneimittelgesetz (AMG) / AMVV',
+    besonderheiten: ausgen ? 'Ausgenommene Zubereitung (Anlage III BtMG): bis zur festgelegten Wirkstoffmenge ein rezeptpflichtiges Arzneimittel (KEIN BtMG-Verstoß); darüber als Betäubungsmittel zu behandeln.' : (btm?'Unterliegt vollständig dem Betäubungsmittelrecht.':''),
+    folgenBesitz: btm?'Besitz ohne gültiges BtM-Rezept ist strafbar (§ 29 BtMG): Freiheitsstrafe bis zu 5 Jahren oder Geldstrafe.':'Besitz ist nicht strafbewehrt. Bei fehlender Berechtigung: gefahrenabwehrende Sicherstellung möglich.',
+    folgenHandel: btm?'Unerlaubter Handel/Abgabe strafbar; bei nicht geringer Menge § 29a/30 BtMG (Freiheitsstrafe nicht unter 1 Jahr).':'§ 95 AMG: unerlaubtes Inverkehrbringen/Abgabe verschreibungspflichtiger Arzneimittel – Freiheitsstrafe bis 3 Jahre oder Geldstrafe.',
+    begruendung: btm?'Enthält einen betäubungsmittelpflichtigen Wirkstoff (Anlage III BtMG) und ist nur mit speziellem BtM-Rezept legal.':'Verschreibungspflichtiges Arzneimittel; Abgabe nur in Apotheken gegen ärztliche Verschreibung.',
+    btm:btm, ausgen:ausgen,
+    bild:'', quellen: btm?['btmg','bfarm','identa']:['amg','identa']
+  };
+}
+function addMedikamente(){
+  const have=new Set(); DATA.forEach(d=>have.add(norm(d.name)));
+  let added=0;
+  MEDIKAMENTE.forEach(m=>{ const e=medEntry(m); if(have.has(norm(e.name)))return; have.add(norm(e.name)); DATA.push(e); added++; });
+  return added;
+}
 
-let CAT = 'alle';
 
-/* ---------- Helpers ---------- */
-function norm(s){return (s||'').toString().toLowerCase().replace(/[\s\|\-_.]/g,'');}
-function matches(item, q){
+
+/* =========================================================================
+   KONSTANTEN
+   ========================================================================= */
+const CAT_INFO = {
+  btm:    {label:'Betäubungsmittel', icon:'fa-pills',  emoji:'💊', desc:'Illegale und kontrollierte Substanzen'},
+  waffe:  {label:'Waffen',           icon:'fa-gun',    emoji:'🔫', desc:'Waffen und gefährliche Gegenstände'},
+  arznei: {label:'Arzneimittel',     icon:'fa-syringe',emoji:'💉', desc:'Medikamente und Wirkstoffe'}
+};
+const STATUS_TEXT = {rot:'Verboten / Straftat', gelb:'Eingeschränkt / Vorsicht', gruen:'Erlaubt / frei'};
+const STATUS_ICON = {rot:'fa-ban', gelb:'fa-triangle-exclamation', gruen:'fa-circle-check'};
+const STATUS_HEX  = {rot:'#dc2626', gelb:'#d97706', gruen:'#16a34a'};
+
+let CAT='alle', STATUS='alle', tmpCat='alle', tmpStatus='alle';
+
+/* =========================================================================
+   HELFER
+   ========================================================================= */
+function norm(s){return (s||'').toString().toLowerCase().replace(/[\s\|\-_.]/g,'').replace(/ä/g,'a').replace(/ö/g,'o').replace(/ü/g,'u').replace(/ß/g,'ss');}
+function matches(item,q){
   if(!q) return true;
-  const nq = norm(q);
-  const hay = [item.name, item.wirkstoff, item.praegung, item.farbe, item.form, ...(item.synonyme||[])].map(norm).join(' ');
+  const nq=norm(q);
+  const hay=[item.name,item.wirkstoff,item.praegung,item.farbe,item.form,item.kurz,...(item.synonyme||[]),...(item.tags||[])].map(norm).join(' ');
   return hay.includes(nq);
 }
-/* ---------- Eigene Fotos (lokal) ---------- */
-function getUserImgs(){ try{ return JSON.parse(localStorage.getItem('ra_userimgs')||'{}'); }catch(e){ return {}; } }
-function saveUserImgs(o){ try{ localStorage.setItem('ra_userimgs', JSON.stringify(o)); }catch(e){ alert('Speicher voll – Foto konnte nicht gespeichert werden.'); } }
-function userImgsFor(id){ const o=getUserImgs(); return Array.isArray(o[id])?o[id]:[]; }
+function shortDesc(it){
+  if(it.kurz) return it.kurz;
+  if(it.begruendung) return it.begruendung;
+  return it.einstufung||'';
+}
 
-/* ---------- Garantiert darstellbare Bildkachel (SVG, immer sichtbar) ---------- */
-const EMOJI = {waffe:'🔫', btm:'🧪', arznei:'💊'};
-const AMPEL_HEX = {rot:'#dc2626', gelb:'#d97706', gruen:'#16a34a'};
+/* ---- Bild / Fallback ---- */
+function getUserImgs(){ try{return JSON.parse(localStorage.getItem('ra_userimgs')||'{}');}catch(e){return {};} }
+function saveUserImgs(o){ try{localStorage.setItem('ra_userimgs',JSON.stringify(o));}catch(e){alert('Speicher voll – Foto konnte nicht gespeichert werden.');} }
+function userImgsFor(id){ const o=getUserImgs(); return Array.isArray(o[id])?o[id]:[]; }
 function svgTile(item){
-  const c1 = AMPEL_HEX[item.ampel]||'#475569';
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">
-    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="${c1}" stop-opacity="0.20"/><stop offset="1" stop-color="#0f172a" stop-opacity="0.10"/>
-    </linearGradient></defs>
-    <rect width="400" height="400" fill="#f1f5f9"/><rect width="400" height="400" fill="url(#g)"/>
-    <text x="200" y="215" font-size="170" text-anchor="middle" dominant-baseline="middle">${EMOJI[item.kategorie]||'❔'}</text>
-    <text x="200" y="350" font-size="22" fill="#64748b" text-anchor="middle" font-family="sans-serif">Symbolbild</text>
-  </svg>`;
+  const c=STATUS_HEX[item.ampel]||'#475569';
+  const em=CAT_INFO[item.kategorie]?CAT_INFO[item.kategorie].emoji:'❔';
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c}" stop-opacity="0.18"/><stop offset="1" stop-color="#0f172a" stop-opacity="0.08"/></linearGradient></defs><rect width="400" height="400" fill="#f1f5f9"/><rect width="400" height="400" fill="url(#g)"/><text x="200" y="220" font-size="170" text-anchor="middle" dominant-baseline="middle">${em}</text></svg>`;
   return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
 }
-/* Bevorzugte Bildquelle: eigenes Foto › Referenz-URL › SVG-Kachel */
-function mainImg(item){ const u=userImgsFor(item.id); if(u.length) return u[0]; if(item.bild) return item.bild; return svgTile(item); }
+function mainImg(item){ const u=userImgsFor(item.id); if(u.length) return u[0]; if(item.bild) return item.bild; const c=cachedImg(item); if(c) return c; return svgTile(item); }
 
-function thumbHTML(item){
-  const src = mainImg(item);
-  const fb = svgTile(item).replace(/"/g,'&quot;');
-  return `<div class="thumb"><img src="${src}" alt="" loading="lazy"
-    onerror="this.onerror=null;this.src='${fb}'"></div>`;
+/* ---- Auto-Bilder per Wikipedia (best effort, gecacht) ---- */
+let WIKIIMG=(function(){ try{return JSON.parse(localStorage.getItem('ra_wikiimg')||'{}');}catch(e){return {};} })();
+function saveWiki(){ try{localStorage.setItem('ra_wikiimg',JSON.stringify(WIKIIMG));}catch(e){} }
+function imgQuery(item){ return ((item.wirkstoff||item.name||'').split('/')[0]).trim(); }
+function cachedImg(item){ const v=WIKIIMG[imgQuery(item)]; return v||null; }   // '' = versucht, nichts gefunden
+async function fetchWikiImg(q){
+  if(!q || (q in WIKIIMG)) return WIKIIMG[q]||'';
+  WIKIIMG[q]='';                                   // als „versucht" markieren (kein Mehrfach-Fetch)
+  try{
+    const r=await fetch('https://de.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(q));
+    if(r.ok){ const j=await r.json(); const src=(j.thumbnail&&j.thumbnail.source)||(j.originalimage&&j.originalimage.source)||''; WIKIIMG[q]=src; }
+  }catch(e){}
+  saveWiki(); return WIKIIMG[q]||'';
+}
+function applyImg(q,src){ if(!src)return; document.querySelectorAll('img[data-imgq='+JSON.stringify(q)+']').forEach(im=>{ im.src=src; }); }
+let prefetchRunning=false, prefetchTimer=null;
+function schedulePrefetch(items){ clearTimeout(prefetchTimer); prefetchTimer=setTimeout(()=>prefetchImages(items),500); }
+async function prefetchImages(items){
+  if(prefetchRunning) return; prefetchRunning=true;
+  try{
+    const seen=new Set(); const todo=[];
+    for(const it of items){
+      if(it.kategorie!=='arznei') continue;
+      if(userImgsFor(it.id).length||it.bild) continue;
+      const q=imgQuery(it); if(!q||(q in WIKIIMG)||seen.has(q)) continue;
+      seen.add(q); todo.push(q); if(todo.length>=30) break;
+    }
+    for(const q of todo){ const src=await fetchWikiImg(q); applyImg(q,src); }
+  } finally { prefetchRunning=false; }
 }
 
-/* ---------- Lightbox ---------- */
-function openLightbox(src){
-  document.getElementById('lightboxImg').src = src;
-  document.getElementById('lightbox').classList.add('open');
+/* ---- Favoriten ---- */
+function getFavs(){ try{return JSON.parse(localStorage.getItem('ra_favorites')||'[]');}catch(e){return [];} }
+function isFav(id){ return getFavs().includes(id); }
+function toggleFav(id,ev){
+  if(ev) ev.stopPropagation();
+  let f=getFavs();
+  f = f.includes(id) ? f.filter(x=>x!==id) : f.concat(id);
+  try{localStorage.setItem('ra_favorites',JSON.stringify(f));}catch(e){}
+  render(); renderFavoriten(); updateFavSummary();
+  if(document.getElementById('modal').classList.contains('open')) openDetail(id,true);
 }
-function closeLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
-function cardHTML(item){
-  return `<div class="card" onclick="openDetail('${item.id}')">
-    ${thumbHTML(item)}
+function updateFavSummary(){
+  const n=getFavs().length;
+  const el=document.getElementById('favSummary');
+  if(el) el.innerHTML = n? ('<b>'+n+'</b> gespeicherte'+(n===1?'r Eintrag':' Einträge')) : '<small>Noch keine Favoriten gespeichert.</small>';
+}
+
+/* =========================================================================
+   KARTEN / LISTEN
+   ========================================================================= */
+function cardHTML(it){
+  const fb=svgTile(it).replace(/"/g,'&quot;');
+  return `<div class="card" onclick="openDetail('${it.id}')">
+    <div class="thumb"><img src="${mainImg(it)}" alt="" loading="lazy" data-imgq="${(imgQuery(it)).replace(/"/g,'&quot;')}" onerror="this.onerror=null;this.src='${fb}'"></div>
     <div class="body">
-      <h3>${item.name}</h3>
-      <div class="sub">${item.wirkstoff?('Wirkstoff: '+item.wirkstoff+' · '):''}${item.gesetz}</div>
+      <div class="cat">${CAT_INFO[it.kategorie]?CAT_INFO[it.kategorie].label:''}</div>
+      <h3>${it.name}</h3>
+      <div class="desc">${shortDesc(it)}</div>
     </div>
-    <div class="badge ${item.ampel}"><i class="fa-solid ${AMPEL_ICON[item.ampel]}"></i>${AMPEL_TEXT[item.ampel]}</div>
+    <button class="favstar ${isFav(it.id)?'on':''}" onclick="toggleFav('${it.id}',event)" aria-label="Favorit"><i class="fa-${isFav(it.id)?'solid':'regular'} fa-star"></i></button>
+    <div class="badge ${it.ampel}"><i class="fa-solid ${STATUS_ICON[it.ampel]}"></i></div>
   </div>`;
 }
 
-/* ---------- Liste rendern ---------- */
 function render(){
-  const q = document.getElementById('search').value.trim();
-  const list = DATA.filter(d => (CAT==='alle'||d.kategorie===CAT) && matches(d,q));
-  const box = document.getElementById('results');
-  document.getElementById('count').textContent = list.length+' Treffer';
-  if(!list.length){
-    box.innerHTML = `<div class="empty"><i class="fa-solid fa-magnifying-glass"></i>
-      Keine Treffer.<br><small>Versuche einen anderen Begriff oder nutze die Gelbe Liste Identa (Quellen).</small></div>`;
-    return;
-  }
-  box.innerHTML = list.map(cardHTML).join('');
+  const inp=document.getElementById('search');
+  const q=inp?inp.value.trim():'';
+  if(document.getElementById('searchClear')) document.getElementById('searchClear').style.display=q?'block':'none';
+  const list=DATA.filter(d=>(CAT==='alle'||d.kategorie===CAT)&&(STATUS==='alle'||d.ampel===STATUS)&&matches(d,q));
+  const box=document.getElementById('results');
+  document.getElementById('count').textContent=list.length+(list.length===1?' Ergebnis':' Ergebnisse');
+  document.getElementById('filterBtn').classList.toggle('on',CAT!=='alle'||STATUS!=='alle');
+  box.innerHTML=list.length?list.map(cardHTML).join(''):`<div class="empty"><i class="fa-solid fa-magnifying-glass"></i>Keine Treffer.<br><small>Anderen Begriff versuchen oder Filter zurücksetzen.</small></div>`;
+  if(list.length) schedulePrefetch(list);
 }
-function setCat(c, el){
-  CAT=c;
-  document.querySelectorAll('#tabs .tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
+
+function renderFavoriten(){
+  const favs=getFavs();
+  const list=DATA.filter(d=>favs.includes(d.id));
+  const box=document.getElementById('favResults');
+  if(!box) return;
+  box.innerHTML=list.length?list.map(cardHTML).join(''):`<div class="empty"><i class="fa-regular fa-star"></i>Noch keine Favoriten.<br><small>Tippe bei einem Eintrag auf den Stern.</small></div>`;
+  if(list.length) schedulePrefetch(list);
+}
+
+/* ---- Live-Vorschläge ---- */
+function liveSuggest(q,boxId){
+  const box=document.getElementById(boxId);
+  if(boxId==='homeSuggest') document.getElementById('homeClear').style.display=q?'block':'none';
+  q=(q||'').trim();
+  if(!q){ box.classList.remove('open'); box.innerHTML=''; return; }
+  const list=DATA.filter(d=>matches(d,q)).slice(0,6);
+  if(!list.length){ box.classList.remove('open'); box.innerHTML=''; return; }
+  box.innerHTML=list.map(it=>`<div class="srow" onclick="openDetail('${it.id}')">
+    <span class="mini-dot" style="background:${STATUS_HEX[it.ampel]}"></span>
+    <span class="ti">${it.name}</span>
+    <span class="badge ${it.ampel}" style="font-size:9px"><i class="fa-solid ${STATUS_ICON[it.ampel]}"></i></span>
+  </div>`).join('');
+  box.classList.add('open');
+}
+function clearHome(){ const i=document.getElementById('homeSearch'); i.value=''; liveSuggest('','homeSuggest'); i.focus(); }
+function clearSearch(){ const i=document.getElementById('search'); i.value=''; render(); i.focus(); }
+function focusSearch(){ setTimeout(()=>{const i=document.getElementById('search'); if(i) i.focus();},120); }
+
+/* =========================================================================
+   KATEGORIEN
+   ========================================================================= */
+function catCardHTML(cat){
+  const c=CAT_INFO[cat];
+  return `<div class="catcard ${cat}" onclick="openKategorie('${cat}')">
+    <div class="cic">${c.emoji}</div>
+    <div><h3>${c.label}</h3><p>${c.desc}</p></div>
+    <i class="fa-solid fa-arrow-right arrow"></i>
+  </div>`;
+}
+function renderCats(){
+  const html=['btm','waffe','arznei'].map(catCardHTML).join('');
+  document.getElementById('homeCats').innerHTML=html;
+  document.getElementById('allCats').innerHTML=html;
+}
+function openKategorie(cat){
+  CAT=cat; STATUS='alle';
+  const s=document.getElementById('search'); if(s) s.value='';
+  document.getElementById('sucheTitle').textContent=CAT_INFO[cat].label;
+  go('suche',document.getElementById('nav-start'));
   render();
 }
 
-/* ---------- Detail ---------- */
-function openDetail(id){
-  const it = DATA.find(d=>d.id===id); if(!it) return;
-  const fb = svgTile(it).replace(/"/g,'&quot;');
-  const heroSrc = mainImg(it);
-  const heroImg = `<img src="${heroSrc}" alt="Vergleichsfoto" style="cursor:zoom-in"
-        onerror="this.onerror=null;this.src='${fb}'"
-        onclick="openLightbox(this.src)">
-       <span class="imgnote">${userImgsFor(it.id).length?'Eigenes Foto – zum Vergrößern tippen':'Symbolbild – zum Vergleich, tippen zum Vergrößern'}</span>`;
-
-  // Galerie aus eigenen Fotos + (falls vorhanden) Referenzbild
-  const ui = userImgsFor(it.id);
-  let galleryImgs = ui.map((src,i)=>({src,label:'Eigenes Foto',idx:i}));
-  if(it.bild) galleryImgs.push({src:it.bild,label:'Referenz',idx:-1});
-  const galleryHTML = galleryImgs.length>1 ? `
-      <div class="sectiontitle">Fotos (zum Vergrößern tippen)</div>
-      <div class="gallery">${galleryImgs.map(g=>`
-        <div class="gimg" onclick="openLightbox('${g.src.replace(/'/g,"\\'")}')">
-          <img src="${g.src}" alt="" onerror="this.onerror=null;this.src='${fb}'">
-          <span class="tagx">${g.label}</span>
-          ${g.idx>=0?`<button class="del" onclick="event.stopPropagation();delUserImg('${it.id}',${g.idx});closeDetail();openDetail('${it.id}')"><i class="fa-solid fa-trash"></i></button>`:''}
-        </div>`).join('')}</div>` : '';
-
-  const srcLinks = (it.quellen||[]).map(k=>{
-    const s = QUELLEN[k]; if(!s) return '';
-    return `<a href="${s.url}" target="_blank" rel="noopener">
-      <i class="fa-solid fa-up-right-from-square src"></i>
-      <span>${s.titel}<br><small style="color:var(--muted)">${s.meta}</small></span>
-      <i class="fa-solid fa-chevron-right ext"></i></a>`;
-  }).join('');
-
-  document.getElementById('sheet').innerHTML = `
-    <div class="hero">${heroImg}<button class="close" onclick="closeDetail()"><i class="fa-solid fa-xmark"></i></button></div>
-    <div class="pad">
-      <h2>${it.name}</h2>
-      <div class="syn">${(it.synonyme&&it.synonyme.length)?('Auch: '+it.synonyme.join(', ')):'&nbsp;'}</div>
-      ${galleryHTML}
-
-      <div class="ampel-big ${it.ampel}">
-        <div class="ic"><i class="fa-solid ${AMPEL_ICON[it.ampel]}"></i></div>
-        <div><div class="t1">${it.einstufung}</div><div class="t2">Ampel: ${AMPEL_TEXT[it.ampel]}</div></div>
-      </div>
-
-      ${it.wirkstoff?`<div class="field"><div class="lbl">Wirkstoff</div><div class="val">${it.wirkstoff}</div></div>`:''}
-      ${it.praegung?`<div class="field"><div class="lbl">Prägung / Erkennung</div><div class="val">${it.praegung}</div></div>`:''}
-      ${(it.farbe||it.form)?`<div class="field"><div class="lbl">Merkmale</div><div class="val">${[it.farbe,it.form].filter(Boolean).join(' · ')}</div></div>`:''}
-      ${it.merkmale?`<div class="field"><div class="lbl">Aussehen / Erkennungsmerkmale</div><div class="val">${it.merkmale}</div></div>`:''}
-
-      <div class="field"><div class="lbl">Rechtsgrundlage</div><div class="val law">${it.gesetz}</div></div>
-      <div class="field"><div class="lbl">Einordnung (vereinfacht)</div><div class="val">${it.begruendung}</div></div>
-
-      <div class="sectiontitle">Quellen</div>
-      <div class="sources">${srcLinks||'<small style="color:var(--muted)">—</small>'}</div>
-
-      <div class="disclaimer mini" style="margin-top:14px">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <div>Vereinfachte Orientierung, keine Rechtsberatung. Die Strafbarkeit hängt vom Einzelfall ab
-        (Menge, Erlaubnis, Ort, Alter, Absicht). Im Zweifel Behörden/Anwalt fragen.</div>
-      </div>
-    </div>`;
-  document.getElementById('modal').classList.add('open');
+/* =========================================================================
+   DETAIL
+   ========================================================================= */
+function consequenceHTML(it){
+  const rows=[];
+  if(it.folgenBesitz) rows.push(['Besitz',it.folgenBesitz]);
+  if(it.folgenHandel) rows.push(['Handel',it.folgenHandel]);
+  if(it.folgenFuehren) rows.push(['Führen',it.folgenFuehren]);
+  if(!rows.length && it.strafmass) rows.push(['Strafmaß',it.strafmass]);
+  if(!rows.length) return '';
+  return rows.map(r=>`<div class="conseq"><i class="fa-solid fa-gavel"></i><div><b>${r[0]}</b><span>${r[1]}</span></div></div>`).join('');
 }
-function closeDetail(){document.getElementById('modal').classList.remove('open');}
+function featList(pairs){
+  const items=pairs.filter(p=>p[1]).map(p=>`<li><i class="fa-solid fa-circle"></i><span><b>${p[0]}:</b> ${p[1]}</span></li>`);
+  return items.length?`<ul class="feat">${items.join('')}</ul>`:'';
+}
+function similarHTML(it){
+  const sim=DATA.filter(d=>d.id!==it.id && d.kategorie===it.kategorie).slice(0,8);
+  if(!sim.length) return '';
+  const fb=svgTile(it).replace(/"/g,'&quot;');
+  return `<div class="block"><h4><i class="fa-solid fa-layer-group"></i> Ähnliche Einträge</h4>
+    <div class="similar">${sim.map(s=>`<div class="simcard" onclick="openDetail('${s.id}')">
+      <div class="si"><img src="${mainImg(s)}" alt="" onerror="this.onerror=null;this.src='${fb}'"></div>
+      <div class="st"><h5>${s.name}</h5><span class="b" style="background:${STATUS_HEX[s.ampel]}"></span></div>
+    </div>`).join('')}</div></div>`;
+}
+function openDetail(id,keepScroll){
+  const it=DATA.find(d=>d.id===id); if(!it) return;
+  const fb=svgTile(it).replace(/"/g,'&quot;');
+  const ui=userImgsFor(it.id);
+  let gal=ui.map((src,i)=>({src,label:'Eigenes Foto',idx:i}));
+  if(it.bild) gal.push({src:it.bild,label:'Referenz',idx:-1});
+  const galleryHTML = gal.length ? `<div class="block"><h4><i class="fa-solid fa-images"></i> Bildergalerie</h4>
+    <div class="gallery">${gal.map(g=>`<div class="gimg" onclick="openLightbox('${g.src.replace(/'/g,"\\'")}')">
+      <img src="${g.src}" alt="" onerror="this.onerror=null;this.src='${fb}'"><span class="tagx">${g.label}</span>
+      ${g.idx>=0?`<button class="del" onclick="event.stopPropagation();delUserImg('${it.id}',${g.idx});openDetail('${it.id}')"><i class="fa-solid fa-trash"></i></button>`:''}
+    </div>`).join('')}</div></div>` : '';
 
-/* ---------- Navigation ---------- */
-function go(view, el){
+  const legalRows=[
+    ['Gesetz',it.gesetz],
+    ['Rechtsgrundlage',it.rechtsgrundlage],
+    ['Besonderheiten',it.besonderheiten]
+  ].filter(r=>r[1]).map(r=>`<div class="row"><div class="k">${r[0]}</div><div class="v ${r[0]==='Gesetz'?'strong':''}">${r[1]}</div></div>`).join('');
+  const conseq=consequenceHTML(it);
+  const legalBlock=(legalRows||conseq||it.begruendung)?`<div class="block legal"><h4><i class="fa-solid fa-scale-balanced"></i> Rechtliche Einordnung</h4>
+    ${legalRows}${it.begruendung?`<div class="row"><div class="k">Einordnung</div><div class="v">${it.begruendung}</div></div>`:''}${conseq}</div>`:'';
+
+  const merk=featList([['Form',it.form],['Farbe',it.farbe],['Geruch',it.geruch],['Verpackung',it.verpackung],['Material',it.material],['Kennzeichnung',it.kennzeichnung||it.merkmale]]);
+  const merkBlock=merk?`<div class="block"><h4><i class="fa-solid fa-list-check"></i> Merkmale</h4>${merk}</div>`:'';
+
+  const idh=featList([['Prägung',it.praegung],['Wirkstoff',it.wirkstoff],['Erkennungshilfe',it.idHilfe]]);
+  const idBlock=idh?`<div class="block"><h4><i class="fa-solid fa-fingerprint"></i> Identifikationshilfe</h4>${idh}</div>`:'';
+
+  const gefahr=[it.gefahrGesundheit&&['Gesundheitsgefahr',it.gefahrGesundheit],it.gefahrVerletzung&&['Verletzungsrisiko',it.gefahrVerletzung],it.gefahrVorsicht&&['Vorsicht',it.gefahrVorsicht]].filter(Boolean);
+  const gefahrBlock=gefahr.length?`<div class="block danger"><h4><i class="fa-solid fa-triangle-exclamation"></i> Gefahrenhinweise</h4>${gefahr.map(g=>`<div class="row"><div class="k">${g[0]}</div><div class="v">${g[1]}</div></div>`).join('')}</div>`:'';
+
+  const syn=(it.synonyme&&it.synonyme.length)?`<div class="block"><h4><i class="fa-solid fa-tags"></i> Straßen- &amp; Szenebezeichnungen</h4><div class="chips">${it.synonyme.map(s=>`<span class="chip">${s}</span>`).join('')}</div></div>`:'';
+
+  const srcLinks=(it.quellen||[]).map(k=>{const s=QUELLEN[k];if(!s)return '';return `<a class="srclink" href="${s.url}" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square" style="color:var(--accent)"></i><span>${s.titel}<br><small style="color:var(--muted)">${s.meta}</small></span><i class="fa-solid fa-chevron-right ext"></i></a>`;}).join('');
+
+  document.getElementById('sheet').innerHTML=`
+    <div class="hero">
+      <img id="heroImg" src="${mainImg(it)}" alt="" data-imgq="${(imgQuery(it)).replace(/"/g,'&quot;')}" onerror="this.onerror=null;this.src='${fb}'" onclick="openLightbox(this.src)">
+      <div class="grad"></div>
+      <div class="htop"><button onclick="closeDetail()"><i class="fa-solid fa-arrow-left"></i></button><span class="sp"></span><button onclick="toggleFav('${it.id}',event)" style="color:${isFav(it.id)?'#f59e0b':'#fff'}"><i class="fa-${isFav(it.id)?'solid':'regular'} fa-star"></i></button></div>
+      <div class="hmeta"><div class="cat">${CAT_INFO[it.kategorie]?CAT_INFO[it.kategorie].label:''}</div><h2>${it.name}</h2></div>
+    </div>
+    <div class="pad">
+      <div class="statusbig ${it.ampel}"><div class="ic"><i class="fa-solid ${STATUS_ICON[it.ampel]}"></i></div><div><div class="t1">${it.einstufung||STATUS_TEXT[it.ampel]}</div><div class="t2">Status: ${STATUS_TEXT[it.ampel]}</div></div></div>
+      ${legalBlock}${merkBlock}${idBlock}${gefahrBlock}${syn}${galleryHTML}${similarHTML(it)}
+      ${srcLinks?`<div class="block"><h4><i class="fa-solid fa-book"></i> Quellen</h4>${srcLinks}</div>`:''}
+      <div class="mini-disc"><i class="fa-solid fa-triangle-exclamation"></i><div>Vereinfachte Orientierung, keine Rechtsberatung. Strafbarkeit hängt vom Einzelfall ab (Menge, Erlaubnis, Ort, Alter, Absicht).</div></div>
+    </div>`;
+  const m=document.getElementById('modal');
+  m.classList.add('open');
+  if(!keepScroll) m.querySelector('.sheet').scrollTop=0;
+  // Bild best effort von Wikipedia nachladen, falls nur Symbol-Fallback
+  if(!userImgsFor(it.id).length && !it.bild && !cachedImg(it)){
+    const q=imgQuery(it);
+    fetchWikiImg(q).then(src=>{ if(src){ const hi=document.getElementById('heroImg'); if(hi&&hi.getAttribute('data-imgq')===q) hi.src=src; applyImg(q,src); } });
+  }
+}
+function closeDetail(){ document.getElementById('modal').classList.remove('open'); }
+
+/* ---- Lightbox ---- */
+function openLightbox(src){ document.getElementById('lightboxImg').src=src; document.getElementById('lightbox').classList.add('open'); }
+function closeLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
+
+/* =========================================================================
+   NAVIGATION
+   ========================================================================= */
+function go(view,el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
   document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  const navMap={start:'nav-start',suche:'nav-start',favoriten:'nav-favoriten',kamera:'nav-kamera',kategorien:'nav-kategorien',profil:'nav-profil'};
+  const navEl=document.getElementById(navMap[view]); if(navEl) navEl.classList.add('active');
+  if(view==='favoriten') renderFavoriten();
+  if(view==='profil'){ updateFavSummary(); renderMyImgs(); }
+  const sg=document.getElementById('homeSuggest'); if(sg) sg.classList.remove('open');
   window.scrollTo(0,0);
 }
 
-/* ---------- Disclaimer ---------- */
-function dismissDisclaimer(){
-  document.getElementById('disclaimer').style.display='none';
-  try{localStorage.setItem('ra_disclaimer','1');}catch(e){}
+/* =========================================================================
+   FILTER
+   ========================================================================= */
+function openFilter(){ tmpCat=CAT; tmpStatus=STATUS; syncFilterUI(); document.getElementById('filterModal').classList.add('open'); }
+function closeFilter(){ document.getElementById('filterModal').classList.remove('open'); }
+function pickFilter(type,val,el){
+  if(type==='cat'){ tmpCat=val; document.querySelectorAll('#fCat button').forEach(b=>b.classList.toggle('on',b===el)); }
+  else { tmpStatus=val; document.querySelectorAll('#fStatus button').forEach(b=>b.classList.toggle('on',b===el)); }
 }
+function syncFilterUI(){
+  document.querySelectorAll('#fCat button').forEach(b=>b.classList.toggle('on',b.dataset.v===tmpCat));
+  document.querySelectorAll('#fStatus button').forEach(b=>b.classList.toggle('on',b.dataset.v===tmpStatus));
+}
+function applyFilter(){ CAT=tmpCat; STATUS=tmpStatus; document.getElementById('sucheTitle').textContent = CAT==='alle'?'Suche':CAT_INFO[CAT].label; closeFilter(); render(); }
+function resetFilter(){ tmpCat='alle'; tmpStatus='alle'; syncFilterUI(); }
 
 /* =========================================================================
-   KAMERA + VORSCHLÄGE
+   DISCLAIMER
    ========================================================================= */
-let lastPhotoDataUrl = null;
+function resetDisclaimer(){ try{localStorage.removeItem('ra_disclaimer');}catch(e){} alert('Hinweis wird beim nächsten Start wieder angezeigt.'); }
 
+/* =========================================================================
+   KAMERA
+   ========================================================================= */
+let lastPhotoDataUrl=null;
 function onPhoto(ev){
-  const file = ev.target.files && ev.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    lastPhotoDataUrl = e.target.result;
-    const img = document.getElementById('camPreview');
-    img.src = lastPhotoDataUrl; img.style.display='block';
-    document.getElementById('aiBtn').style.display = getKey() ? 'inline-flex' : 'none';
-    document.getElementById('shareBtn').style.display = 'inline-flex';
-    setAIStatus('Foto bereit. Wähle oben deine KI und tippe „Foto mit KI prüfen“ – oder grenze unten über Merkmale ein.','');
-    manualSuggest();
+  const file=ev.target.files&&ev.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    lastPhotoDataUrl=e.target.result;
+    const img=document.getElementById('camPreview');
+    img.src=lastPhotoDataUrl; img.style.display='block';
+    document.getElementById('camPlaceholder').style.display='none';
+    document.getElementById('shareBtn').style.display='inline-flex';
+    runAnalysis();
   };
   reader.readAsDataURL(file);
 }
-
-function renderCamResults(list, label){
-  document.getElementById('camCount').textContent = label || (list.length+' Vorschläge – bitte selbst vergleichen');
-  const box = document.getElementById('camResults');
-  box.innerHTML = list.length
-    ? list.map(cardHTML).join('')
-    : `<div class="empty"><i class="fa-solid fa-image"></i>Noch keine Vorschläge.<br><small>Merkmale eingeben oder KI nutzen.</small></div>`;
+function setAIStatus(msg,cls){ const el=document.getElementById('aiStatus'); el.textContent=msg; el.className='ai-status '+(cls||''); }
+function renderCamResults(items,label){
+  const box=document.getElementById('camResults');
+  if(!items||!items.length){ box.innerHTML=''; return; }
+  let head=label?`<div class="sectiontitle">${label}</div>`:'';
+  // items: {it, pct?}
+  if(items[0].pct!=null){
+    box.innerHTML=head+items.map(o=>{
+      const fb=svgTile(o.it).replace(/"/g,'&quot;');
+      return `<div class="pctrow" onclick="openDetail('${o.it.id}')"><div class="pthumb"><img src="${mainImg(o.it)}" onerror="this.onerror=null;this.src='${fb}'"></div><div class="pbody"><h4>${o.it.name}</h4><div class="pbar"><span style="width:${o.pct}%"></span></div></div><div class="pctnum">${o.pct}%</div></div>`;
+    }).join('');
+  } else {
+    box.innerHTML=head+items.map(o=>cardHTML(o.it)).join('');
+  }
 }
 
-/* Merkmals-Filter (offline-Fallback) */
-function manualSuggest(){
-  const f = norm(document.getElementById('fFarbe').value);
-  const fo = norm(document.getElementById('fForm').value);
-  const p = norm(document.getElementById('fPraeg').value);
-  if(!f && !fo && !p){ renderCamResults([], 'Tippe Merkmale ein oder nutze die KI.'); return; }
-  const scored = DATA.map(d=>{
-    let s=0;
-    const hay = norm([d.farbe,d.form,d.praegung,d.name,d.wirkstoff,...(d.synonyme||[])].join(' '));
-    if(f && norm(d.farbe).includes(f)) s+=2;
-    if(fo && norm(d.form).includes(fo)) s+=2;
-    if(p && (norm(d.praegung).includes(p)||hay.includes(p))) s+=3;
-    return {d,s};
-  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).map(x=>x.d);
-  renderCamResults(scored, scored.length+' Vorschläge (Merkmals-Suche) – bitte selbst vergleichen');
+/* Analyse: mit Schlüssel -> KI mit %, ohne -> Hinweis aufs Teilen */
+function runAnalysis(){
+  const an=document.getElementById('analyzing');
+  document.getElementById('camResults').innerHTML='';
+  if(getKey()){
+    an.classList.add('on');
+    setAIStatus('','');
+    runAISuggest();
+  } else {
+    an.classList.remove('on');
+    setAIStatus('Foto bereit. Wähle oben deine KI und tippe „Foto mit KI prüfen“ – die Antwort erscheint dann in der KI-App.','');
+  }
 }
 
-/* ---------- KI-Anbieter (Teilen, ohne API-Schlüssel) ---------- */
-const PROVIDERS = {
-  chatgpt:{name:'ChatGPT', url:'https://chatgpt.com/'},
-  gemini: {name:'Gemini',  url:'https://gemini.google.com/app'},
-  claude: {name:'Claude',  url:'https://claude.ai/new'}
-};
-function getProvider(){ try{ return localStorage.getItem('ra_aiprovider')||'chatgpt'; }catch(e){ return 'chatgpt'; } }
-function setProvider(p){
-  try{ localStorage.setItem('ra_aiprovider',p); }catch(e){}
-  ['chatgpt','gemini','claude'].forEach(k=>{
-    const b=document.getElementById('prov-'+k); if(b) b.classList.toggle('active',k===p);
-  });
-}
+/* ---- Provider ---- */
+const PROVIDERS={chatgpt:{name:'ChatGPT',url:'https://chatgpt.com/'},gemini:{name:'Gemini',url:'https://gemini.google.com/app'},claude:{name:'Claude',url:'https://claude.ai/new'}};
+function getProvider(){ try{return localStorage.getItem('ra_aiprovider')||'chatgpt';}catch(e){return 'chatgpt';} }
+function setProvider(p){ try{localStorage.setItem('ra_aiprovider',p);}catch(e){} ['chatgpt','gemini','claude'].forEach(k=>{const b=document.getElementById('prov-'+k);if(b)b.classList.toggle('active',k===p);}); }
 function aiFrageText(){
-  const namen = DATA.map(d=>d.name).join('; ');
-  return 'Ich versuche, ein fotografiertes Objekt rechtlich grob einzuordnen (Waffe, Betäubungsmittel/Droge '+
-    'oder Arzneimittel/Tablette). Welche der folgenden Möglichkeiten zeigt das Foto am ehesten? '+
-    'Bitte gib eine Rangliste (bestes zuerst), ohne Prozentzahlen, und nenne kurz die sichtbaren Merkmale. '+
-    'Mögliche Einträge: '+namen+'. '+
-    'Hinweis: Triff keine endgültige rechtliche Aussage – ich gleiche das Ergebnis anschließend selbst in meiner App ab.';
+  const namen=DATA.map(d=>d.name).join('; ');
+  return 'Ich versuche, ein fotografiertes Objekt rechtlich grob einzuordnen (Waffe, Betäubungsmittel/Droge oder Arzneimittel). Welche der folgenden Möglichkeiten zeigt das Foto am ehesten? Bitte gib eine Rangliste (bestes zuerst) und nenne kurz die sichtbaren Merkmale. Mögliche Einträge: '+namen+'. Hinweis: Triff keine endgültige rechtliche Aussage – ich gleiche das Ergebnis anschließend selbst ab.';
 }
-function dataUrlToFile(dataUrl, name){
-  const m=/^data:(.+?);base64,(.+)$/.exec(dataUrl); if(!m) return null;
-  const bin=atob(m[2]); const arr=new Uint8Array(bin.length);
-  for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
-  return new File([arr], name, {type:m[1]});
-}
+function dataUrlToFile(dataUrl,name){ const m=/^data:(.+?);base64,(.+)$/.exec(dataUrl); if(!m)return null; const bin=atob(m[2]); const arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i); return new File([arr],name,{type:m[1]}); }
 async function shareToAI(){
   if(!lastPhotoDataUrl){ setAIStatus('Bitte zuerst ein Foto aufnehmen.','err'); return; }
-  const prov = getProvider();
-  const text = aiFrageText();
-  const file = dataUrlToFile(lastPhotoDataUrl, 'foto.jpg');
-
-  // 1) Bevorzugt: System-Teilen-Menü mit Foto + Frage
+  const prov=getProvider(); const text=aiFrageText(); const file=dataUrlToFile(lastPhotoDataUrl,'foto.jpg');
   try{
-    if(navigator.canShare && file && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], text:text, title:'RechtsAmpel – KI-Anfrage'});
-      setAIStatus('Geteilt. Lies die Antwort in deiner KI-App ('+PROVIDERS[prov].name+') und wähle danach hier den passenden Eintrag.','');
-      showProvLinks(prov); return;
+    if(navigator.canShare&&file&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],text:text,title:'Datenbank – KI-Anfrage'});
+      setAIStatus('Geteilt. Lies die Antwort in deiner KI-App ('+PROVIDERS[prov].name+') und wähle danach hier den passenden Eintrag.',''); showProvLinks(prov); return;
     }
-    if(navigator.share){
-      await navigator.share({text:text, title:'RechtsAmpel – KI-Anfrage'});
-      setAIStatus('Frage geteilt (ohne Bild – Foto in der KI-App noch anhängen). Danach hier den Eintrag wählen.','');
-      showProvLinks(prov); return;
-    }
-  }catch(err){
-    if(err && err.name==='AbortError'){ setAIStatus('Teilen abgebrochen.',''); return; }
-  }
-
-  // 2) Fallback (Desktop / kein Teilen): Frage in Zwischenablage + Anbieter-Link
+    if(navigator.share){ await navigator.share({text:text,title:'Datenbank – KI-Anfrage'}); setAIStatus('Frage geteilt (Foto in der KI-App noch anhängen).',''); showProvLinks(prov); return; }
+  }catch(err){ if(err&&err.name==='AbortError'){ setAIStatus('Teilen abgebrochen.',''); return; } }
   try{ await navigator.clipboard.writeText(text); }catch(e){}
-  setAIStatus('Teilen nicht verfügbar. Frage wurde in die Zwischenablage kopiert – öffne deine KI unten, füge die Frage ein und hänge das Foto an.','');
-  showProvLinks(prov);
+  setAIStatus('Teilen nicht verfügbar. Frage in Zwischenablage kopiert – öffne deine KI unten und füge sie ein.',''); showProvLinks(prov);
 }
-function showProvLinks(prov){
-  const box=document.getElementById('provLinks');
-  const p=PROVIDERS[prov]||PROVIDERS.chatgpt;
-  box.style.display='flex';
-  box.innerHTML = `<a href="${p.url}" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> ${p.name} öffnen</a>`;
-}
+function showProvLinks(prov){ const box=document.getElementById('provLinks'); const p=PROVIDERS[prov]||PROVIDERS.chatgpt; box.style.display='flex'; box.innerHTML=`<a href="${p.url}" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> ${p.name} öffnen</a>`; }
 
-/* ---------- API-Key ---------- */
-function getKey(){try{return localStorage.getItem('ra_apikey')||'';}catch(e){return '';}}
+/* ---- API-Key ---- */
+function getKey(){ try{return localStorage.getItem('ra_apikey')||'';}catch(e){return '';} }
 function saveKey(){
-  const v = document.getElementById('apiKey').value.trim();
+  const v=document.getElementById('apiKey').value.trim();
   try{ v?localStorage.setItem('ra_apikey',v):localStorage.removeItem('ra_apikey'); }catch(e){}
-  document.getElementById('keyState').textContent = v?'Gespeichert ✓':'Entfernt';
-  document.getElementById('aiBtn').style.display = (v && lastPhotoDataUrl) ? 'inline-flex':'none';
+  document.getElementById('keyState').textContent=v?'Gespeichert ✓':'Entfernt';
 }
-function setAIStatus(msg, cls){
-  const el = document.getElementById('aiStatus');
-  el.textContent = msg; el.className = 'ai-status '+(cls||'');
-}
-
-/* ---------- KI-Vorschläge via Anthropic API (optional, clientseitig) ---------- */
 async function runAISuggest(){
-  const key = getKey();
-  if(!key){ setAIStatus('Kein API-Schlüssel hinterlegt (unter „Quellen“).','err'); return; }
-  if(!lastPhotoDataUrl){ setAIStatus('Bitte zuerst ein Foto aufnehmen.','err'); return; }
-
-  const m = /^data:(image\/[a-zA-Z+]+);base64,(.+)$/.exec(lastPhotoDataUrl);
-  if(!m){ setAIStatus('Bildformat nicht lesbar.','err'); return; }
-  const mediaType = m[1], b64 = m[2];
-
-  const katalog = DATA.map(d=>({id:d.id, name:d.name, kategorie:d.kategorie, merkmale:[d.farbe,d.form,d.praegung].filter(Boolean).join(', ')}));
-  const prompt =
-    'Du hilfst, ein fotografiertes Objekt mit Einträgen eines Katalogs abzugleichen (Waffen, Drogen, Tabletten). '+
-    'Wähle aus dem Katalog die bis zu 5 am ehesten passenden Einträge anhand sichtbarer Merkmale. '+
-    'Antworte AUSSCHLIESSLICH als JSON-Array von id-Strings, z. B. ["a-ibuprofen","a-ass"]. '+
-    'Triff keine rechtliche Aussage. Katalog:\n'+JSON.stringify(katalog);
-
+  const key=getKey(); const an=document.getElementById('analyzing');
+  if(!key||!lastPhotoDataUrl){ an.classList.remove('on'); return; }
+  const m=/^data:(image\/[a-zA-Z+]+);base64,(.+)$/.exec(lastPhotoDataUrl);
+  if(!m){ an.classList.remove('on'); setAIStatus('Bildformat nicht lesbar.','err'); return; }
+  const mediaType=m[1],b64=m[2];
+  const katalog=DATA.map(d=>({id:d.id,name:d.name,kategorie:d.kategorie,merkmale:[d.farbe,d.form,d.praegung].filter(Boolean).join(', ')}));
+  const prompt='Gleiche das fotografierte Objekt mit dem Katalog ab (Waffen, Drogen, Tabletten). Gib die bis zu 5 wahrscheinlichsten Treffer als JSON-Array zurück, jeweils {"id":"...","pct":0-100}, absteigend nach Wahrscheinlichkeit. pct ist deine geschätzte Trefferwahrscheinlichkeit. Nur JSON, keine weitere Ausgabe. Katalog:\n'+JSON.stringify(katalog);
   setAIStatus('KI analysiert das Foto …','work');
   try{
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'content-type':'application/json',
-        'x-api-key':key,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
-        model:'claude-opus-4-8',
-        max_tokens:300,
-        messages:[{role:'user',content:[
-          {type:'image',source:{type:'base64',media_type:mediaType,data:b64}},
-          {type:'text',text:prompt}
-        ]}]
-      })
-    });
-    if(!res.ok){
-      const t = await res.text();
-      setAIStatus('KI-Fehler ('+res.status+'). Nutze die Merkmals-Suche. '+t.slice(0,120),'err');
-      return;
-    }
-    const json = await res.json();
-    const text = (json.content||[]).map(c=>c.text||'').join('');
-    let ids = [];
-    try{ ids = JSON.parse((text.match(/\[[\s\S]*\]/)||['[]'])[0]); }catch(e){}
-    const list = ids.map(id=>DATA.find(d=>d.id===id)).filter(Boolean);
-    if(!list.length){ setAIStatus('Keine eindeutige Zuordnung. Bitte Merkmals-Suche nutzen.','err'); renderCamResults([]); return; }
-    setAIStatus('KI-Vorschläge (unverbindlich) – bitte selbst mit den Vergleichsfotos abgleichen.','');
-    renderCamResults(list, list.length+' KI-Vorschläge – bitte selbst vergleichen & auswählen');
-  }catch(err){
-    setAIStatus('Netzwerk-/CORS-Fehler. Nutze die Merkmals-Suche. ('+err.message+')','err');
-  }
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-opus-4-8',max_tokens:400,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mediaType,data:b64}},{type:'text',text:prompt}]}]})});
+    an.classList.remove('on');
+    if(!res.ok){ const t=await res.text(); setAIStatus('KI-Fehler ('+res.status+'). Nutze die Teilen-Funktion. '+t.slice(0,100),'err'); return; }
+    const json=await res.json();
+    const txt=(json.content||[]).map(c=>c.text||'').join('');
+    let arr=[]; try{ arr=JSON.parse((txt.match(/\[[\s\S]*\]/)||['[]'])[0]); }catch(e){}
+    const items=arr.map(o=>({it:DATA.find(d=>d.id===o.id),pct:Math.max(0,Math.min(100,Math.round(o.pct||0)))})).filter(o=>o.it);
+    if(!items.length){ setAIStatus('Keine eindeutige Zuordnung. Bitte Teilen-Funktion nutzen.','err'); return; }
+    setAIStatus('KI-Vorschläge (unverbindlich) – bitte selbst vergleichen.','');
+    renderCamResults(items,'Analyse-Ergebnis');
+  }catch(err){ an.classList.remove('on'); setAIStatus('Netzwerk-/CORS-Fehler. Nutze die Teilen-Funktion. ('+err.message+')','err'); }
 }
 
 /* =========================================================================
-   HOCHLADEN / ZUORDNEN (eigene Fotos)
+   UPLOAD / ZUORDNEN
    ========================================================================= */
-let uploadDataUrl = null;
-
-function onUploadPick(ev){
-  const file = ev.target.files && ev.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    uploadDataUrl = e.target.result;
-    const img = document.getElementById('upPrev');
-    img.src = uploadDataUrl; img.style.display='block';
-    setUpStatus('Foto geladen. Kategorie und Eintrag wählen, dann zuordnen.','');
-  };
-  reader.readAsDataURL(file);
-}
-function setUpStatus(msg, cls){ const el=document.getElementById('upStatus'); el.textContent=msg; el.className='ai-status '+(cls||''); }
-
+let uploadDataUrl=null;
+function onUploadPick(ev){ const file=ev.target.files&&ev.target.files[0]; if(!file)return; const r=new FileReader(); r.onload=e=>{ uploadDataUrl=e.target.result; const img=document.getElementById('upPrev'); img.src=uploadDataUrl; img.style.display='block'; setUpStatus('Foto geladen. Kategorie & Eintrag wählen, dann zuordnen.',''); }; r.readAsDataURL(file); }
+function setUpStatus(msg,cls){ const el=document.getElementById('upStatus'); el.textContent=msg; el.className='ai-status '+(cls||''); }
 function fillUploadEntries(){
-  const cat = document.getElementById('upCat').value;
-  const sel = document.getElementById('upEntry');
-  sel.innerHTML = DATA.filter(d=>d.kategorie===cat)
-    .map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+  const catSel=document.getElementById('upCat');
+  if(!catSel.options.length){ catSel.innerHTML=Object.keys(CAT_INFO).map(k=>`<option value="${k}">${CAT_INFO[k].label}</option>`).join(''); }
+  const cat=catSel.value||'btm';
+  document.getElementById('upEntry').innerHTML=DATA.filter(d=>d.kategorie===cat).map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
 }
-
 function saveUploadAssign(){
   if(!uploadDataUrl){ setUpStatus('Bitte zuerst ein Foto auswählen.','err'); return; }
-  const id = document.getElementById('upEntry').value;
-  if(!id){ setUpStatus('Bitte einen Eintrag wählen.','err'); return; }
-  const it = DATA.find(d=>d.id===id);
+  const id=document.getElementById('upEntry').value; const it=DATA.find(d=>d.id===id);
+  if(!it){ setUpStatus('Bitte einen Eintrag wählen.','err'); return; }
   if(!confirm('Bist du dir 100% sicher, dass dieses Foto „'+it.name+'“ zeigt?\n\nNur sichere Fotos zuordnen.')) return;
-  const o = getUserImgs();
-  if(!Array.isArray(o[id])) o[id]=[];
-  o[id].push(uploadDataUrl);
-  saveUserImgs(o);
-  uploadDataUrl=null;
-  document.getElementById('upPrev').style.display='none';
-  document.getElementById('upInput').value='';
-  setUpStatus('✓ Foto „'+it.name+'“ zugeordnet. Es erscheint jetzt beim Eintrag.','');
-  renderMyImgs(); render();
+  const o=getUserImgs(); if(!Array.isArray(o[id])) o[id]=[]; o[id].push(uploadDataUrl); saveUserImgs(o);
+  uploadDataUrl=null; document.getElementById('upPrev').style.display='none'; document.getElementById('upInput').value='';
+  setUpStatus('✓ Foto „'+it.name+'“ zugeordnet.',''); renderMyImgs(); render();
 }
-
-function delUserImg(id, idx){
-  const o = getUserImgs();
-  if(Array.isArray(o[id])){ o[id].splice(idx,1); if(!o[id].length) delete o[id]; saveUserImgs(o); }
-  renderMyImgs(); render();
-}
-
+function delUserImg(id,idx){ const o=getUserImgs(); if(Array.isArray(o[id])){ o[id].splice(idx,1); if(!o[id].length) delete o[id]; saveUserImgs(o);} renderMyImgs(); render(); }
 function renderMyImgs(){
-  const o = getUserImgs();
-  const box = document.getElementById('myImgs');
-  const rows = [];
-  Object.keys(o).forEach(id=>{
-    const it = DATA.find(d=>d.id===id); if(!it) return;
-    o[id].forEach((src,i)=>{
-      rows.push(`<div class="myimg-row">
-        <img src="${src}" alt="" onclick="openLightbox('${src.replace(/'/g,"\\'")}')">
-        <div class="info"><b>${it.name}</b><br><small>${AMPEL_TEXT[it.ampel]} · ${it.gesetz}</small></div>
-        <button onclick="delUserImg('${id}',${i})"><i class="fa-solid fa-trash"></i> Löschen</button>
-      </div>`);
-    });
-  });
-  box.innerHTML = rows.length ? rows.join('') : '<small style="color:var(--muted)">Noch keine eigenen Fotos zugeordnet.</small>';
+  const o=getUserImgs(); const box=document.getElementById('myImgs'); if(!box) return; const rows=[];
+  Object.keys(o).forEach(id=>{ const it=DATA.find(d=>d.id===id); if(!it)return; o[id].forEach((src,i)=>{ rows.push(`<div class="myimg-row"><img src="${src}" onclick="openLightbox('${src.replace(/'/g,"\\'")}')"><div class="info"><b>${it.name}</b><br><small>${STATUS_TEXT[it.ampel]}</small></div><button onclick="delUserImg('${id}',${i})"><i class="fa-solid fa-trash"></i></button></div>`); }); });
+  box.innerHTML=rows.length?rows.join(''):'<small style="color:var(--muted)">Noch keine eigenen Fotos zugeordnet.</small>';
 }
 
 /* =========================================================================
-   QUELLEN-SEITE + INIT
+   QUELLEN + INIT
    ========================================================================= */
 function renderSources(){
-  const order = ['waffg','waffg_anl','btmg','kcang','amg','bfarm','zoll','identa','bayern'];
-  const box = document.getElementById('srclist');
-  box.innerHTML = order.map(k=>{
-    const s = QUELLEN[k];
-    return `<a href="${s.url}" target="_blank" rel="noopener">
-      <i class="fa-solid fa-up-right-from-square src" style="color:#2563eb"></i>
-      <span>${s.titel}<span class="meta">${s.meta}</span></span>
-      <i class="fa-solid fa-chevron-right ext"></i></a>`;
-  }).join('');
+  const order=['waffg','waffg_anl','btmg','kcang','amg','bfarm','zoll','identa','bayern'];
+  document.getElementById('srclist').innerHTML=order.map(k=>{const s=QUELLEN[k];if(!s)return '';return `<a href="${s.url}" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square" style="color:var(--accent)"></i><span>${s.titel}<span class="meta">${s.meta}</span></span><i class="fa-solid fa-chevron-right ext"></i></a>`;}).join('');
+}
+/* =========================================================================
+   SUPABASE: Daten laden (paginiert), falls konfiguriert
+   ========================================================================= */
+function updateDataSourceLabel(){
+  const el=document.getElementById('dataSource');
+  if(el) el.innerHTML='Datenquelle: <b>'+DATA_SOURCE+'</b> · '+DATA.length+' Einträge';
+}
+async function loadFromSupabase(){
+  if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return;            // nicht konfiguriert -> Fallback
+  if(!(window.supabase && window.supabase.createClient)) return;
+  try{
+    const client=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const PAGE=1000; let from=0; const rows=[];
+    while(true){
+      const {data,error}=await client.from('eintraege').select('doc').range(from, from+PAGE-1);
+      if(error) throw error;
+      if(!data || !data.length) break;
+      data.forEach(r=>{ if(r && r.doc) rows.push(r.doc); });
+      if(data.length < PAGE) break;
+      from += PAGE;
+    }
+    if(rows.length){
+      DATA.length=0; rows.forEach(d=>DATA.push(d));
+      DATA_SOURCE='Supabase';
+      renderCats(); render(); renderFavoriten(); updateFavSummary(); updateDataSourceLabel();
+      console.log('Supabase: '+rows.length+' Einträge geladen.');
+    }
+  }catch(err){
+    console.warn('Supabase-Laden fehlgeschlagen, nutze eingebettete Daten:', err.message||err);
+  }
 }
 
 function init(){
-  try{ if(localStorage.getItem('ra_disclaimer')==='1') document.getElementById('disclaimer').style.display='none'; }catch(e){}
-  const k = getKey();
-  if(k){ document.getElementById('apiKey').value=k; document.getElementById('keyState').textContent='Gespeichert ✓'; }
-  renderSources();
-  fillUploadEntries();
-  renderMyImgs();
-  setProvider(getProvider());
-  render();
-  // Lupen-Intro ausblenden
+  const k=getKey(); if(k){ document.getElementById('apiKey').value=k; document.getElementById('keyState').textContent='Gespeichert ✓'; }
+  addMedikamente();
+  renderCats(); renderSources(); fillUploadEntries(); renderMyImgs(); updateFavSummary(); updateDataSourceLabel();
+  setProvider(getProvider()); render();
+  loadFromSupabase();   // im Hintergrund; ersetzt Daten, wenn Supabase konfiguriert ist
+  // Schließe Vorschläge bei Klick außerhalb
+  document.addEventListener('click',e=>{ const sb=document.querySelector('#view-start .searchbar'); if(sb&&!sb.contains(e.target)) document.getElementById('homeSuggest').classList.remove('open'); });
+  // Splash
   const splash=document.getElementById('splash');
-  if(splash){
-    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-    setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=>splash.remove(),600); }, reduce?300:1900);
-  }
+  if(splash){ const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches; setTimeout(()=>{splash.classList.add('hide'); setTimeout(()=>splash.remove(),600);}, reduce?300:1900); }
 }
 init();
 </script>
