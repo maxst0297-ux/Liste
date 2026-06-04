@@ -1146,6 +1146,112 @@ function addMedikamente(){
   return added;
 }
 
+/* =========================================================================
+   WAFFEN – Einordnung je Waffe nach WaffG Anlage 2 (Abschnitte 1–3):
+   Besitz/Erwerb, Führen und sonstiger Umgang. Ohne Gewähr – amtliche Quelle maßgeblich.
+   ========================================================================= */
+const WAFFEN_STUFE = {
+  'w-springmesser':'verboten','w-butterfly':'verboten','w-faustmesser':'verboten',
+  'w-wurfstern':'verboten','w-schlagring':'verboten','w-stahlrute':'verboten',
+  'w-wurfsterne-praezi':'verboten','w-elektroimpuls':'verboten','w-molotow':'verboten',
+  'w-vollautomat':'verboten','w-kriegswaffe':'kriegswaffe','w-schusswaffe':'erlaubnis',
+  'w-schreckschuss':'ksw','w-anscheinswaffe':'anscheinswaffe','w-einhandmesser':'frei42a',
+  'w-taschenmesser':'frei','w-luftgewehr':'frei','w-softair':'frei','w-pfefferspray':'frei'
+};
+const STUFE = {
+  verboten:{ampel:'rot',einstufung:'Verbotene Waffe (Straftat)',
+    rechtsgrundlage:'WaffG Anlage 2 Abschnitt 1 (verbotene Waffen); §§ 2 Abs. 3, 51/52 WaffG',
+    besitz:'Erwerb und Besitz sind verboten und strafbar (§ 52 WaffG): Freiheitsstrafe bis zu 3 Jahren oder Geldstrafe (in schweren Fällen mehr).',
+    fuehren:'Führen ist ebenfalls verboten und strafbar.',
+    umgang:'Jeder Umgang (Herstellen, Überlassen, Einführen, Feilbieten) ist grundsätzlich verboten.'},
+  kriegswaffe:{ampel:'rot',einstufung:'Kriegswaffe (Straftat)',
+    rechtsgrundlage:'Kriegswaffenkontrollgesetz (KrWaffKG); WaffG Anlage 2 Abschnitt 1',
+    besitz:'Erwerb/Besitz ohne staatliche Genehmigung sind eine schwere Straftat (Freiheitsstrafe).',
+    fuehren:'Führen ohne Genehmigung strafbar.',
+    umgang:'Umgang nur mit Genehmigung der zuständigen Behörde; sonst strafbar.'},
+  erlaubnis:{ampel:'rot',einstufung:'Erlaubnispflichtig – ohne Erlaubnis Straftat',
+    rechtsgrundlage:'WaffG Anlage 2 Abschnitt 2 (erlaubnispflichtige Waffen); §§ 2 Abs. 2, 52 WaffG',
+    besitz:'Erwerb und Besitz benötigen eine Erlaubnis (Waffenbesitzkarte). Ohne Erlaubnis strafbar (§ 52 WaffG): Freiheitsstrafe bis zu 3 Jahren oder Geldstrafe.',
+    fuehren:'Führen in der Öffentlichkeit nur mit Waffenschein; sonst strafbar.',
+    umgang:'Munitionserwerb erlaubnispflichtig; sichere Aufbewahrung vorgeschrieben.'},
+  ksw:{ampel:'gelb',einstufung:'Erlaubnisfrei ab 18 – Führen nur mit Kleinem Waffenschein',
+    rechtsgrundlage:'WaffG Anlage 2 Abschnitt 3 (mit PTB-Zulassung); §§ 10 Abs. 4, 53 WaffG',
+    besitz:'Erwerb und Besitz sind ab 18 Jahren erlaubnisfrei (Voraussetzung: PTB-Zulassungszeichen im Kreis).',
+    fuehren:'Führen in der Öffentlichkeit nur mit „Kleinem Waffenschein"; ohne diesen Ordnungswidrigkeit (Bußgeld). Ohne PTB-Zeichen kann es strafbar sein.',
+    umgang:'In Waffenverbotszonen und bei öffentlichen Veranstaltungen verboten.'},
+  anscheinswaffe:{ampel:'gelb',einstufung:'Besitz erlaubt – Führen verboten (Ordnungswidrigkeit)',
+    rechtsgrundlage:'WaffG Anlage 2 Abschnitt 1 Nr. 1.6; § 53 WaffG',
+    besitz:'Erwerb und Besitz sind erlaubt.',
+    fuehren:'Das Führen in der Öffentlichkeit ist verboten (Ordnungswidrigkeit, Bußgeld).',
+    umgang:''},
+  frei42a:{ampel:'gelb',einstufung:'Besitz frei – Führen eingeschränkt (Ordnungswidrigkeit)',
+    rechtsgrundlage:'WaffG § 42a (Führungsverbot bestimmter Messer); § 53 WaffG',
+    besitz:'Erwerb und Besitz sind erlaubnisfrei.',
+    fuehren:'Führen von Einhandmessern und feststehenden Messern mit Klinge über 12 cm in der Öffentlichkeit ist verboten (Ordnungswidrigkeit). Ausnahme z. B. berechtigtes Interesse/Brauchtum.',
+    umgang:'In Waffenverbotszonen gelten strengere Regeln.'},
+  frei:{ampel:'gruen',einstufung:'Erlaubt / frei (Altersgrenzen beachten)',
+    rechtsgrundlage:'WaffG Anlage 2 Abschnitt 3 (erlaubnisfreie Gegenstände)',
+    besitz:'Erwerb und Besitz sind erlaubnisfrei (ggf. Altersgrenze, z. B. ab 18 bzw. 14).',
+    fuehren:'Führen grundsätzlich erlaubt; Einschränkungen in Waffenverbotszonen und bei öffentlichen Veranstaltungen.',
+    umgang:''}
+};
+function enrichWeapons(){
+  DATA.forEach(it=>{
+    const st=WAFFEN_STUFE[it.id]; if(!st) return;
+    const s=STUFE[st]; if(!s) return;
+    it.ampel=s.ampel; it.einstufung=s.einstufung; it.rechtsgrundlage=s.rechtsgrundlage;
+    it.folgenBesitz='Besitz/Erwerb: '+s.besitz;
+    it.folgenFuehren='Führen: '+s.fuehren;
+    if(s.umgang) it.besonderheiten='Sonstiger Umgang: '+s.umgang;
+    if(it.quellen && it.quellen.indexOf('waffg')<0) it.quellen=['waffg','waffg_anl','bayern'];
+  });
+}
+
+/* =========================================================================
+   BETÄUBUNGSMITTEL – rechtliche Differenzierung (Besitz vs. Handel), BtMG/KCanG.
+   §§ 29 (Besitz/Erwerb), 29a/30/30a (nicht geringe/Banden-Menge), 31a (Absehen).
+   ========================================================================= */
+const BTM_BUCKET = {
+  'd-heroin':'illegal','d-lsd':'illegal','d-mdma':'illegal','d-psilocybin':'illegal',
+  'd-2cb':'illegal','d-kokain':'illegal','d-amphetamin':'illegal','d-methamphetamin':'illegal','d-ghb':'ghb',
+  'd-fentanyl':'btmrezept','d-morphin':'btmrezept','d-methadon':'btmrezept','d-tilidin':'btmrezept',
+  'd-codein':'codein','d-amphetamin-rezept':'btmrezept',
+  'd-cannabis':'cannabis','d-cannabis-medizin':'medcan','d-ketamin':'ketamin'
+};
+const BTM_TEXT = {
+  illegal:{ampel:'rot',einstufung:'Nicht verkehrsfähig – Besitz strafbar',
+    besitz:'Besitz und Erwerb ohne Erlaubnis sind strafbar (§ 29 BtMG): Freiheitsstrafe bis zu 5 Jahren oder Geldstrafe. Bei geringer Menge zum Eigenkonsum kann die Staatsanwaltschaft von der Verfolgung absehen (§ 31a BtMG).',
+    handel:'Handel, Einfuhr und Abgabe sind strafbar; bei nicht geringer Menge mindestens 1 Jahr Freiheitsstrafe (§ 29a/§ 30 BtMG), banden-/gewerbsmäßig höher (§ 30a).'},
+  ghb:{ampel:'rot',einstufung:'BtMG-pflichtig – Besitz ohne Erlaubnis strafbar',
+    besitz:'GHB unterliegt dem BtMG; Besitz ohne Erlaubnis ist strafbar (§ 29 BtMG). Der Vorläufer GBL ist nicht im BtMG, wird aber als Grundstoff überwacht.',
+    handel:'Unerlaubter Handel/Abgabe strafbar (§ 29a/30 BtMG).'},
+  btmrezept:{ampel:'rot',einstufung:'BtM-pflichtig – nur mit BtM-Rezept legal',
+    besitz:'Mit gültigem Betäubungsmittel-Rezept legal. Ohne Verschreibung sind Besitz/Erwerb strafbar (§ 29 BtMG): Freiheitsstrafe bis zu 5 Jahren oder Geldstrafe.',
+    handel:'Abgabe/Handel ohne Erlaubnis strafbar; nicht geringe Menge § 29a/30 BtMG.'},
+  codein:{ampel:'gelb',einstufung:'Verschreibungspflichtig; höhere Dosen BtM-pflichtig',
+    besitz:'Niedrig dosierte/ausgenommene Zubereitungen sind verschreibungspflichtige Arzneimittel (Besitz nicht strafbewehrt). Höher konzentrierte Formen sind BtM-pflichtig – dann ohne BtM-Rezept strafbar (§ 29 BtMG).',
+    handel:'Abgabe ohne Berechtigung: § 95 AMG bzw. bei BtM-Pflicht § 29 BtMG.'},
+  cannabis:{ampel:'gelb',einstufung:'Teilweise erlaubt (KCanG) – Grenzen beachten',
+    besitz:'Für Erwachsene in engen Grenzen erlaubt (Besitzmengen, Orte, Eigenanbau nach KCanG). Bei Überschreitung der Mengen oder Konsum an verbotenen Orten: Ordnungswidrigkeit oder Straftat.',
+    handel:'Verkauf/Abgabe – insbesondere an Minderjährige – bleibt strafbar (KCanG; ggf. BtMG).'},
+  medcan:{ampel:'gelb',einstufung:'Nur mit ärztlicher Verordnung legal',
+    besitz:'Medizinalcannabis ist nur mit ärztlicher Verordnung legal (MedCanG). Ohne Verordnung gelten die allgemeinen Regeln (KCanG).',
+    handel:'Abgabe nur über Apotheken auf Verschreibung; sonst strafbar.'},
+  ketamin:{ampel:'gelb',einstufung:'Verschreibungspflichtig (AMG) – kein BtM',
+    besitz:'Ketamin ist ein verschreibungspflichtiges Narkosemittel (AMG, in DE nicht im BtMG). Besitz ohne Berechtigung ist nicht nach BtMG strafbar; missbräuchliche Abgabe ist nach § 95 AMG strafbar.',
+    handel:'Unerlaubtes Inverkehrbringen/Abgabe: § 95 AMG (Freiheitsstrafe bis 3 Jahre).'}
+};
+function enrichBtm(){
+  DATA.forEach(it=>{
+    const b=BTM_BUCKET[it.id]; if(!b) return;
+    const t=BTM_TEXT[b]; if(!t) return;
+    it.ampel=t.ampel; it.einstufung=t.einstufung;
+    it.folgenBesitz='Besitz/Erwerb: '+t.besitz;
+    it.folgenHandel='Handel/Abgabe: '+t.handel;
+  });
+}
+function enrichLegal(){ enrichWeapons(); enrichBtm(); }
+
 
 
 /* =========================================================================
@@ -1193,23 +1299,29 @@ function mainImg(item){ const u=userImgsFor(item.id); if(u.length) return u[0]; 
 /* ---- Auto-Bilder per Wikipedia (best effort, gecacht) ---- */
 let WIKIIMG=(function(){ try{return JSON.parse(localStorage.getItem('ra_wikiimg')||'{}');}catch(e){return {};} })();
 function saveWiki(){ try{localStorage.setItem('ra_wikiimg',JSON.stringify(WIKIIMG));}catch(e){} }
-function imgQuery(item){
-  let q = item.wirkstoff || item.name || '';
-  q = q.split('/')[0];                 // erstes bei "X / Y"
-  q = q.replace(/\(.*?\)/g,' ');       // Klammern entfernen
-  q = q.split(' - ')[0];               // Herstellername nach " - " entfernen
-  q = q.replace(/\d+[.,]?\d*\s*(mg|g|ml|%|µg|mcg|stk|iE).*/i,''); // Dosisangaben entfernen
+function cleanTerm(s){
+  let q=(s||'').split(' / ')[0].replace(/\(.*?\)/g,' ').split(' - ')[0].replace(/\d+[.,]?\d*\s*(mg|g|ml|%|µg|mcg|stk|ie)\b.*/i,'');
   return q.replace(/\s+/g,' ').trim();
 }
+function imgQuery(item){ return cleanTerm(item.name) || cleanTerm(item.wirkstoff) || ''; }   // Cache-/DOM-Schlüssel je Eintrag
+function imgCandidates(item){
+  const out=[]; const a=cleanTerm(item.name), b=cleanTerm(item.wirkstoff);
+  if(a) out.push(a);
+  if(b && norm(b)!==norm(a)) out.push(b);
+  return out;
+}
 function cachedImg(item){ const v=WIKIIMG[imgQuery(item)]; return v||null; }   // '' = versucht, nichts gefunden
-async function fetchWikiImg(q){
-  if(!q || (q in WIKIIMG)) return WIKIIMG[q]||'';
-  WIKIIMG[q]='';                                   // als „versucht" markieren (kein Mehrfach-Fetch)
-  try{
-    const r=await fetch('https://de.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(q));
-    if(r.ok){ const j=await r.json(); const src=(j.thumbnail&&j.thumbnail.source)||(j.originalimage&&j.originalimage.source)||''; WIKIIMG[q]=src; }
-  }catch(e){}
-  saveWiki(); return WIKIIMG[q]||'';
+async function fetchWikiImg(item){
+  const key=imgQuery(item); if(!key) return '';
+  if(key in WIKIIMG) return WIKIIMG[key]||'';
+  WIKIIMG[key]='';                                  // als „versucht" markieren (kein Mehrfach-Fetch)
+  for(const cand of imgCandidates(item)){            // erst Marken-/Präparatname, dann Wirkstoff
+    try{
+      const r=await fetch('https://de.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(cand));
+      if(r.ok){ const j=await r.json(); const src=(j.thumbnail&&j.thumbnail.source)||(j.originalimage&&j.originalimage.source)||''; if(src){ WIKIIMG[key]=src; break; } }
+    }catch(e){}
+  }
+  saveWiki(); return WIKIIMG[key]||'';
 }
 function applyImg(q,src){ if(!src)return; document.querySelectorAll('img[data-imgq='+JSON.stringify(q)+']').forEach(im=>{ im.src=src; }); }
 let prefetchRunning=false, prefetchTimer=null;
@@ -1220,10 +1332,10 @@ async function prefetchImages(items){
     const seen=new Set(); const todo=[];
     for(const it of items){
       if(userImgsFor(it.id).length||it.bild) continue;   // alle Kategorien
-      const q=imgQuery(it); if(!q||(q in WIKIIMG)||seen.has(q)) continue;
-      seen.add(q); todo.push(q); if(todo.length>=30) break;
+      const key=imgQuery(it); if(!key||(key in WIKIIMG)||seen.has(key)) continue;
+      seen.add(key); todo.push(it); if(todo.length>=30) break;
     }
-    for(const q of todo){ const src=await fetchWikiImg(q); applyImg(q,src); }
+    for(const it of todo){ const src=await fetchWikiImg(it); applyImg(imgQuery(it),src); }
   } finally { prefetchRunning=false; }
 }
 
@@ -1404,7 +1516,7 @@ function openDetail(id,keepScroll){
   // Bild best effort von Wikipedia nachladen, falls nur Symbol-Fallback
   if(!userImgsFor(it.id).length && !it.bild && !cachedImg(it)){
     const q=imgQuery(it);
-    fetchWikiImg(q).then(src=>{ if(src){ const hi=document.getElementById('heroImg'); if(hi&&hi.getAttribute('data-imgq')===q) hi.src=src; applyImg(q,src); } });
+    fetchWikiImg(it).then(src=>{ if(src){ const hi=document.getElementById('heroImg'); if(hi&&hi.getAttribute('data-imgq')===q) hi.src=src; applyImg(q,src); } });
   }
 }
 function closeDetail(){ document.getElementById('modal').classList.remove('open'); }
@@ -1636,6 +1748,7 @@ async function loadFromSupabase(){
     }
     if(rows.length){
       DATA.length=0; rows.forEach(d=>DATA.push(d));
+      enrichLegal();   // Rechts-Differenzierung (Waffen/BtM) auch auf DB-Daten anwenden
       DATA_SOURCE='Supabase';
       renderCats(); render(); renderFavoriten(); updateFavSummary(); updateDataSourceLabel();
       console.log('Supabase: '+rows.length+' Einträge geladen.');
@@ -1717,6 +1830,7 @@ function init(){
   onKeyProviderChange();
   const k=getKey(); if(k){ document.getElementById('apiKey').value=k; document.getElementById('keyState').textContent='Gespeichert ✓ ('+(getKeyProvider()==='gemini'?'Gemini':'Claude')+')'; }
   addMedikamente();
+  enrichLegal();
   renderCats(); renderSources(); fillUploadEntries(); renderMyImgs(); updateFavSummary(); updateDataSourceLabel();
   ['standHome','standProfil'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=STAND; });
   setProvider(getProvider()); render();
