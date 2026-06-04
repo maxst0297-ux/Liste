@@ -6,6 +6,10 @@
 <meta name="theme-color" content="#0F172A" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Datenbank" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" href="icon-192.png" />
 <title>Datenbank – Identifizierung & rechtliche Einordnung</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -370,7 +374,7 @@
 
     <div class="mini-disc" style="margin-top:18px">
       <i class="fa-solid fa-triangle-exclamation"></i>
-      <div><b>Keine Rechtsberatung.</b> Diese App gibt nur eine grobe Orientierung, keine Gewähr für Richtigkeit/Aktualität. Im Zweifel Polizei, Behörden oder Anwalt fragen.</div>
+      <div><b>Keine Rechtsberatung.</b> Diese App gibt nur eine grobe Orientierung und ersetzt keine juristische oder ärztliche Beratung. <b>Keine Gewähr</b> für Richtigkeit, Vollständigkeit oder Aktualität – die Rechtslage ändert sich. Maßgeblich ist immer der amtliche Gesetzestext. Im Zweifel Polizei, Behörden oder Anwalt fragen. <span style="white-space:nowrap">Stand: <span id="standHome"></span></span></div>
     </div>
   </section>
 
@@ -483,7 +487,7 @@
 
     <div class="panel">
       <h3><i class="fa-solid fa-circle-info"></i> Über &amp; Haftung</h3>
-      <p><small>Orientierungs-Werkzeug nach WaffG, BtMG und AMG. Einstufungen sind vereinfacht und im Zweifel konservativ. Die konkrete Strafbarkeit hängt vom Einzelfall ab (Menge, Erlaubnis, Ort, Alter, Absicht). Keine Gewähr, keine Rechtsberatung. Bilder sind Symbolbilder.</small></p>
+      <p><small><b>Stand der Daten: <span id="standProfil"></span>.</b> Orientierungs-Werkzeug nach WaffG, BtMG und AMG. Einstufungen sind vereinfacht und im Zweifel konservativ. Die konkrete Strafbarkeit hängt vom Einzelfall ab (Menge, Erlaubnis, Ort, Alter, Absicht). <b>Keine Gewähr, keine Rechtsberatung</b>; maßgeblich sind die amtlichen Quellen. Die Medikamentenliste ist nicht abschließend. Bilder sind Symbol-/Strukturbilder aus dem Internet und können abweichen.</small></p>
       <button class="btn ghost" style="margin-top:4px" onclick="resetDisclaimer()"><i class="fa-solid fa-rotate-left"></i> Hinweis zurücksetzen</button>
     </div>
   </section>
@@ -557,6 +561,10 @@
 const SUPABASE_URL = 'https://uxkjuzlwjdhqvflajgvd.supabase.co';        // z. B. 'https://xxxxxxxx.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4a2p1emx3amRocXZmbGFqZ3ZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzY4MjQsImV4cCI6MjA5NTkxMjgyNH0.xynSGidx6_fjGCOhFYIgg3eHCEFvUfb_AVsCzsaD5tU';   // anon public key (oeffentlich, nur Lesen via RLS)
 let DATA_SOURCE = 'lokal eingebettet';
+const STAND = 'Juni 2026';   // Stand der App-Daten
+
+/* PWA: Service Worker registrieren (offline + installierbar) */
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
 
 const QUELLEN = {
   waffg:   {titel:'Waffengesetz (WaffG) – amtlich', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/waffg_2002/'},
@@ -1382,7 +1390,7 @@ function openDetail(id,keepScroll){
       <div class="statusbig ${it.ampel}"><div class="ic"><i class="fa-solid ${STATUS_ICON[it.ampel]}"></i></div><div><div class="t1">${it.einstufung||STATUS_TEXT[it.ampel]}</div><div class="t2">Status: ${STATUS_TEXT[it.ampel]}</div></div></div>
       ${legalBlock}${merkBlock}${idBlock}${gefahrBlock}${syn}${galleryHTML}${similarHTML(it)}
       ${srcLinks?`<div class="block"><h4><i class="fa-solid fa-book"></i> Quellen</h4>${srcLinks}</div>`:''}
-      <div class="mini-disc"><i class="fa-solid fa-triangle-exclamation"></i><div>Vereinfachte Orientierung, keine Rechtsberatung. Strafbarkeit hängt vom Einzelfall ab (Menge, Erlaubnis, Ort, Alter, Absicht).</div></div>
+      <div class="mini-disc"><i class="fa-solid fa-triangle-exclamation"></i><div>Vereinfachte Orientierung, <b>keine Rechtsberatung, keine Gewähr</b>. Die Strafbarkeit hängt vom Einzelfall ab (Menge, Erlaubnis, Ort, Alter, Absicht). Maßgeblich sind die amtlichen Quellen. Stand: ${STAND}.</div></div>
     </div>`;
   const m=document.getElementById('modal');
   m.classList.add('open');
@@ -1677,6 +1685,7 @@ function init(){
   const k=getKey(); if(k){ document.getElementById('apiKey').value=k; document.getElementById('keyState').textContent='Gespeichert ✓'; }
   addMedikamente();
   renderCats(); renderSources(); fillUploadEntries(); renderMyImgs(); updateFavSummary(); updateDataSourceLabel();
+  ['standHome','standProfil'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=STAND; });
   setProvider(getProvider()); render();
   loadFromSupabase();   // im Hintergrund; ersetzt Daten, wenn Supabase konfiguriert ist
   // Schließe Vorschläge bei Klick außerhalb
