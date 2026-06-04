@@ -337,6 +337,7 @@
   <div class="wrap">
     <div class="logo">🔎</div>
     <h1>Datenbank</h1>
+    <button class="iconbtn" onclick="openAdd()" aria-label="Eintrag hinzufügen" style="margin-right:8px"><i class="fa-solid fa-plus"></i></button>
     <button class="iconbtn" onclick="go('profil',document.getElementById('nav-profil'))" aria-label="Profil"><i class="fa-solid fa-user"></i></button>
   </div>
 </header>
@@ -523,6 +524,62 @@
     </div>
     <button class="btn primary" style="margin-top:18px" onclick="applyFilter()"><i class="fa-solid fa-check"></i> Anwenden</button>
     <button class="btn ghost" onclick="resetFilter()">Zurücksetzen</button>
+  </div></div>
+</div>
+
+<!-- EINTRAG HINZUFÜGEN -->
+<div class="modal" id="addModal" onclick="if(event.target===this)closeAdd()">
+  <div class="sheet" style="border-radius:24px 24px 0 0;max-height:94vh"><div class="pad">
+    <h2 style="margin:0 0 4px;font-size:20px;font-weight:800">Eintrag hinzufügen</h2>
+    <p style="font-size:12.5px;color:var(--muted);margin:0 0 14px">Ausfüllen → „SQL erzeugen" → in Supabase einfügen &amp; ausführen → Seite neu laden. Pflichtfelder *.</p>
+
+    <label class="fld">Name *</label>
+    <input id="ad_name" type="text" placeholder="z. B. Tramadol 100 mg - ratiopharm" />
+
+    <label class="fld">Kategorie *</label>
+    <select id="ad_kat">
+      <option value="arznei">Arzneimittel</option>
+      <option value="btm">Betäubungsmittel / Droge</option>
+      <option value="waffe">Waffe / Gegenstand</option>
+    </select>
+
+    <label class="fld">Status (Ampel) *</label>
+    <select id="ad_ampel">
+      <option value="rot">🔴 Rot – verboten / Straftat</option>
+      <option value="gelb">🟡 Gelb – eingeschränkt / Vorschriften</option>
+      <option value="gruen">🟢 Grün – erlaubt / frei</option>
+    </select>
+
+    <label class="fld">Einstufung (kurz)</label>
+    <input id="ad_einstufung" type="text" placeholder="z. B. Verschreibungspflichtig" />
+
+    <label class="fld">Wirkstoff / Erkennung (optional)</label>
+    <input id="ad_wirkstoff" type="text" placeholder="z. B. Tramadol" />
+
+    <label class="fld">Kurzbeschreibung (optional)</label>
+    <input id="ad_kurz" type="text" placeholder="kurzer Satz für die Trefferliste" />
+
+    <label class="fld">Gesetz / Rechtsgrundlage (optional)</label>
+    <input id="ad_gesetz" type="text" placeholder="z. B. AMG § 48 / BtMG Anlage III / WaffG …" />
+
+    <label class="fld">Folgen bei Besitz (optional)</label>
+    <input id="ad_besitz" type="text" placeholder="z. B. nicht strafbewehrt / Freiheitsstrafe bis …" />
+
+    <label class="fld">Folgen bei Handel/Führen (optional)</label>
+    <input id="ad_handel" type="text" placeholder="z. B. § 95 AMG / § 29 BtMG …" />
+
+    <label class="fld">Bild-URL (optional)</label>
+    <input id="ad_bild" type="text" placeholder="https://… (sonst Auto-Suche/Symbol)" />
+
+    <button class="btn primary" style="margin-top:16px" onclick="buildAddSQL()"><i class="fa-solid fa-database"></i> SQL erzeugen</button>
+    <button class="btn ghost" onclick="closeAdd()">Abbrechen</button>
+
+    <div id="ad_out" style="display:none;margin-top:14px">
+      <label class="fld">SQL – in Supabase (SQL Editor) einfügen &amp; „Run"</label>
+      <textarea id="ad_sql" readonly style="width:100%;height:120px;border:1px solid var(--line);border-radius:11px;padding:11px;font-family:monospace;font-size:11.5px;background:var(--card);color:var(--ink)"></textarea>
+      <button class="btn primary" style="margin-top:8px" onclick="copyAddSQL()"><i class="fa-solid fa-copy"></i> SQL kopieren</button>
+      <div class="ai-status" id="ad_status"></div>
+    </div>
   </div></div>
 </div>
 
@@ -1538,6 +1595,39 @@ function go(view,el){
   if(view==='profil'){ updateFavSummary(); renderMyImgs(); }
   const sg=document.getElementById('homeSuggest'); if(sg) sg.classList.remove('open');
   window.scrollTo(0,0);
+}
+
+/* =========================================================================
+   EINTRAG HINZUFÜGEN (erzeugt SQL für Supabase)
+   ========================================================================= */
+function openAdd(){ document.getElementById('addModal').classList.add('open'); document.getElementById('ad_out').style.display='none'; }
+function closeAdd(){ document.getElementById('addModal').classList.remove('open'); }
+function adVal(id){ return (document.getElementById(id).value||'').trim(); }
+function buildAddSQL(){
+  const name=adVal('ad_name'); const kat=adVal('ad_kat'); const ampel=adVal('ad_ampel');
+  if(!name){ alert('Bitte einen Namen eingeben.'); return; }
+  const slug=name.toLowerCase().replace(/[äöü]/g,m=>({'ä':'ae','ö':'oe','ü':'ue'}[m])).replace(/ß/g,'ss').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+  const id='u-'+(slug||('eintrag-'+Date.now()));
+  const doc={
+    id:id, kategorie:kat, name:name, ampel:ampel,
+    einstufung:adVal('ad_einstufung')||STATUS_TEXT[ampel],
+    wirkstoff:adVal('ad_wirkstoff'), synonyme:adVal('ad_wirkstoff')?[adVal('ad_wirkstoff')]:[],
+    kurz:adVal('ad_kurz'), gesetz:adVal('ad_gesetz'), rechtsgrundlage:adVal('ad_gesetz'),
+    folgenBesitz:adVal('ad_besitz')?('Besitz/Erwerb: '+adVal('ad_besitz')):'',
+    folgenHandel:adVal('ad_handel')?('Handel/Führen: '+adVal('ad_handel')):'',
+    begruendung:adVal('ad_kurz'), bild:adVal('ad_bild'), quellen:[], eigen:true
+  };
+  const j=JSON.stringify(doc).split("'").join("''");
+  const sql="insert into public.eintraege (id,kategorie,name,ampel,doc)\nvalues ('"+id+"','"+kat+"','"+name.split("'").join("''")+"','"+ampel+"','"+j+"'::jsonb)\non conflict (id) do update set kategorie=excluded.kategorie, name=excluded.name, ampel=excluded.ampel, doc=excluded.doc, updated_at=now();";
+  document.getElementById('ad_sql').value=sql;
+  document.getElementById('ad_out').style.display='block';
+  document.getElementById('ad_status').textContent='';
+  document.getElementById('ad_sql').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function copyAddSQL(){
+  const t=document.getElementById('ad_sql').value;
+  try{ await navigator.clipboard.writeText(t); document.getElementById('ad_status').textContent='✓ Kopiert. Jetzt in Supabase → SQL Editor einfügen & Run, dann Seite neu laden.'; }
+  catch(e){ const el=document.getElementById('ad_sql'); el.focus(); el.select(); document.getElementById('ad_status').textContent='Bitte manuell kopieren (Text ist markiert).'; }
 }
 
 /* =========================================================================
