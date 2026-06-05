@@ -1367,7 +1367,25 @@ function shortDesc(it){
 
 /* ---- Bild / Fallback ---- */
 function getUserImgs(){ try{return JSON.parse(localStorage.getItem('ra_userimgs')||'{}');}catch(e){return {};} }
-function saveUserImgs(o){ try{localStorage.setItem('ra_userimgs',JSON.stringify(o));}catch(e){alert('Speicher voll – Foto konnte nicht gespeichert werden.');} }
+function saveUserImgs(o){ try{localStorage.setItem('ra_userimgs',JSON.stringify(o));return true;}catch(e){return false;} }
+/* Foto verkleinern + komprimieren (verhindert „Speicher voll") -> cb(dataUrl) */
+function readResizedImage(file, cb){
+  const r=new FileReader();
+  r.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=600; let w=img.width,h=img.height;
+      if(w>=h && w>max){ h=Math.round(h*max/w); w=max; } else if(h>w && h>max){ w=Math.round(w*max/h); h=max; }
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      let out; try{ out=c.toDataURL('image/jpeg',0.72); }catch(err){ out=e.target.result; }
+      cb(out);
+    };
+    img.onerror=()=>cb(e.target.result);
+    img.src=e.target.result;
+  };
+  r.readAsDataURL(file);
+}
 function userImgsFor(id){ const o=getUserImgs(); return Array.isArray(o[id])?o[id]:[]; }
 function svgTile(item){
   const c=STATUS_HEX[item.ampel]||'#475569';
@@ -1641,21 +1659,11 @@ function pickAmpel(v,el){
 }
 function addPhotoPick(ev){
   const f=ev.target.files&&ev.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=e=>{
-    const img=new Image();
-    img.onload=()=>{
-      const max=600; let w=img.width,h=img.height;
-      if(w>=h && w>max){ h=Math.round(h*max/w); w=max; } else if(h>w && h>max){ w=Math.round(w*max/h); h=max; }
-      const c=document.createElement('canvas'); c.width=w; c.height=h;
-      c.getContext('2d').drawImage(img,0,0,w,h);
-      try{ addPhotoDataUrl=c.toDataURL('image/jpeg',0.72); }catch(err){ addPhotoDataUrl=e.target.result; }
-      const pv=document.getElementById('ad_photo_prev'); pv.src=addPhotoDataUrl; pv.style.display='block';
-      document.getElementById('ad_photo_info').textContent='✓ Foto gewählt ('+Math.round(addPhotoDataUrl.length/1024)+' KB) – wird mitgespeichert.';
-    };
-    img.src=e.target.result;
-  };
-  r.readAsDataURL(f);
+  readResizedImage(f, out=>{
+    addPhotoDataUrl=out;
+    const pv=document.getElementById('ad_photo_prev'); pv.src=out; pv.style.display='block';
+    document.getElementById('ad_photo_info').textContent='✓ Foto gewählt ('+Math.round(out.length/1024)+' KB) – wird mitgespeichert.';
+  });
 }
 function closeAdd(){ document.getElementById('addModal').classList.remove('open'); }
 function adVal(id){ return (document.getElementById(id).value||'').trim(); }
@@ -1864,7 +1872,7 @@ async function runAISuggest(){
    UPLOAD / ZUORDNEN
    ========================================================================= */
 let uploadDataUrl=null;
-function onUploadPick(ev){ const file=ev.target.files&&ev.target.files[0]; if(!file)return; const r=new FileReader(); r.onload=e=>{ uploadDataUrl=e.target.result; const img=document.getElementById('upPrev'); img.src=uploadDataUrl; img.style.display='block'; setUpStatus('Foto geladen. Kategorie & Eintrag wählen, dann zuordnen.',''); }; r.readAsDataURL(file); }
+function onUploadPick(ev){ const file=ev.target.files&&ev.target.files[0]; if(!file)return; readResizedImage(file, out=>{ uploadDataUrl=out; const img=document.getElementById('upPrev'); img.src=out; img.style.display='block'; setUpStatus('Foto geladen ('+Math.round(out.length/1024)+' KB). Kategorie & Eintrag wählen, dann zuordnen.',''); }); }
 function setUpStatus(msg,cls){ const el=document.getElementById('upStatus'); el.textContent=msg; el.className='ai-status '+(cls||''); }
 function fillUploadEntries(){
   const catSel=document.getElementById('upCat');
@@ -1877,8 +1885,14 @@ function saveUploadAssign(){
   const id=document.getElementById('upEntry').value; const it=DATA.find(d=>d.id===id);
   if(!it){ setUpStatus('Bitte einen Eintrag wählen.','err'); return; }
   if(!confirm('Bist du dir 100% sicher, dass dieses Foto „'+it.name+'“ zeigt?\n\nNur sichere Fotos zuordnen.')) return;
-  const o=getUserImgs(); if(!Array.isArray(o[id])) o[id]=[]; o[id].push(uploadDataUrl); saveUserImgs(o);
-  uploadDataUrl=null; document.getElementById('upPrev').style.display='none'; document.getElementById('upInput').value='';
+  const o=getUserImgs(); if(!Array.isArray(o[id])) o[id]=[]; o[id].push(uploadDataUrl);
+  if(!saveUserImgs(o)){
+    o[id].pop();   // fehlgeschlagenes Foto wieder entfernen
+    setUpStatus('Speicher voll – Foto konnte nicht gespeichert werden. Lösche unter „Meine zugeordneten Fotos" ältere Bilder und versuche es erneut.','err');
+    return;
+  }
+  uploadDataUrl=null; document.getElementById('upPrev').style.display='none';
+  document.getElementById('upInput').value=''; const g=document.getElementById('upInputGallery'); if(g) g.value='';
   setUpStatus('✓ Foto „'+it.name+'“ zugeordnet.',''); renderMyImgs(); render();
 }
 function delUserImg(id,idx){ const o=getUserImgs(); if(Array.isArray(o[id])){ o[id].splice(idx,1); if(!o[id].length) delete o[id]; saveUserImgs(o);} renderMyImgs(); render(); }
