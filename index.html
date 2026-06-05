@@ -568,8 +568,13 @@
     <label class="fld">Folgen bei Handel/Führen (optional)</label>
     <input id="ad_handel" type="text" placeholder="z. B. § 95 AMG / § 29 BtMG …" />
 
-    <label class="fld">Bild-URL (optional)</label>
-    <input id="ad_bild" type="text" placeholder="https://… (sonst Auto-Suche/Symbol)" />
+    <label class="fld">Bild</label>
+    <input id="ad_photo_input" type="file" accept="image/*" capture="environment" style="display:none" onchange="addPhotoPick(event)" />
+    <button class="btn ghost" style="margin-top:0" onclick="document.getElementById('ad_photo_input').click()"><i class="fa-solid fa-image"></i> Foto vom Gerät wählen</button>
+    <img id="ad_photo_prev" alt="Vorschau" style="display:none;width:100%;max-height:180px;object-fit:contain;border-radius:11px;background:var(--primary);margin-top:8px" />
+    <div id="ad_photo_info" style="font-size:12px;color:var(--muted);margin:4px 2px"></div>
+    <label class="fld" style="margin-top:8px">…oder Bild-URL (optional)</label>
+    <input id="ad_bild" type="text" placeholder="https://… (sonst eigenes Foto / Auto-Suche / Symbol)" />
 
     <button class="btn primary" style="margin-top:16px" onclick="buildAddSQL()"><i class="fa-solid fa-database"></i> SQL erzeugen</button>
     <button class="btn ghost" onclick="closeAdd()">Abbrechen</button>
@@ -1600,7 +1605,33 @@ function go(view,el){
 /* =========================================================================
    EINTRAG HINZUFÜGEN (erzeugt SQL für Supabase)
    ========================================================================= */
-function openAdd(){ document.getElementById('addModal').classList.add('open'); document.getElementById('ad_out').style.display='none'; }
+let addPhotoDataUrl=null;
+function openAdd(){
+  document.getElementById('addModal').classList.add('open');
+  document.getElementById('ad_out').style.display='none';
+  addPhotoDataUrl=null;
+  const pv=document.getElementById('ad_photo_prev'); if(pv){ pv.style.display='none'; pv.src=''; }
+  const inf=document.getElementById('ad_photo_info'); if(inf) inf.textContent='';
+  const fi=document.getElementById('ad_photo_input'); if(fi) fi.value='';
+}
+function addPhotoPick(ev){
+  const f=ev.target.files&&ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=600; let w=img.width,h=img.height;
+      if(w>=h && w>max){ h=Math.round(h*max/w); w=max; } else if(h>w && h>max){ w=Math.round(w*max/h); h=max; }
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      try{ addPhotoDataUrl=c.toDataURL('image/jpeg',0.72); }catch(err){ addPhotoDataUrl=e.target.result; }
+      const pv=document.getElementById('ad_photo_prev'); pv.src=addPhotoDataUrl; pv.style.display='block';
+      document.getElementById('ad_photo_info').textContent='✓ Foto gewählt ('+Math.round(addPhotoDataUrl.length/1024)+' KB) – wird mitgespeichert.';
+    };
+    img.src=e.target.result;
+  };
+  r.readAsDataURL(f);
+}
 function closeAdd(){ document.getElementById('addModal').classList.remove('open'); }
 function adVal(id){ return (document.getElementById(id).value||'').trim(); }
 function buildAddSQL(){
@@ -1615,7 +1646,7 @@ function buildAddSQL(){
     kurz:adVal('ad_kurz'), gesetz:adVal('ad_gesetz'), rechtsgrundlage:adVal('ad_gesetz'),
     folgenBesitz:adVal('ad_besitz')?('Besitz/Erwerb: '+adVal('ad_besitz')):'',
     folgenHandel:adVal('ad_handel')?('Handel/Führen: '+adVal('ad_handel')):'',
-    begruendung:adVal('ad_kurz'), bild:adVal('ad_bild'), quellen:[], eigen:true
+    begruendung:adVal('ad_kurz'), bild:(addPhotoDataUrl||adVal('ad_bild')), quellen:[], eigen:true
   };
   const j=JSON.stringify(doc).split("'").join("''");
   const sql="insert into public.eintraege (id,kategorie,name,ampel,doc)\nvalues ('"+id+"','"+kat+"','"+name.split("'").join("''")+"','"+ampel+"','"+j+"'::jsonb)\non conflict (id) do update set kategorie=excluded.kategorie, name=excluded.name, ampel=excluded.ampel, doc=excluded.doc, updated_at=now();";
