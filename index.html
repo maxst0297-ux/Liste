@@ -322,6 +322,19 @@
   .botfoot input{flex:1;border:1px solid var(--line);border-radius:13px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none}
   .botfoot input:focus{border-color:var(--accent)}
   .botfoot button{border:none;background:var(--accent);color:#fff;width:44px;height:44px;border-radius:50%;font-size:16px;cursor:pointer;flex:0 0 auto}
+
+  /* Formular „Eintrag hinzufügen" – übersichtlich gegliedert */
+  .addsec{font-size:11.5px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.6px;margin:16px 2px 9px;border-top:1px solid var(--line);padding-top:14px;display:flex;gap:7px;align-items:center}
+  .addsec:first-of-type{border-top:none;padding-top:2px;margin-top:4px}
+  .addsec .num{width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;flex:0 0 auto}
+  #addModal .pad input[type=text], #addModal .pad select{margin-bottom:11px}
+  #addModal .pad label.fld{margin-bottom:5px}
+  .ampelsel{display:flex;gap:8px;margin-bottom:6px}
+  .ampelsel button{flex:1;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:10px 4px;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer;color:var(--muted);display:flex;flex-direction:column;gap:3px;align-items:center}
+  .ampelsel button .em{font-size:16px}
+  .ampelsel button.on[data-v="rot"]{border-color:var(--rot);background:var(--rot-bg);color:var(--rot)}
+  .ampelsel button.on[data-v="gelb"]{border-color:var(--gelb);background:var(--gelb-bg);color:var(--gelb)}
+  .ampelsel button.on[data-v="gruen"]{border-color:var(--gruen);background:var(--gruen-bg);color:var(--gruen)}
 </style>
 </head>
 <body>
@@ -470,7 +483,11 @@
       <div class="warnbox"><i class="fa-solid fa-circle-exclamation"></i><div><b>Nur zu 100 % sichere Fotos verwenden!</b> Falsche Zuordnungen können zu gefährlichen Fehleinschätzungen führen. Fotos werden nur lokal gespeichert.</div></div>
       <img id="upPrev" class="uploadprev" alt="Vorschau" />
       <input id="upInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="onUploadPick(event)" />
-      <button class="btn ghost" style="margin-top:0" onclick="document.getElementById('upInput').click()"><i class="fa-solid fa-camera"></i> Foto auswählen</button>
+      <input id="upInputGallery" type="file" accept="image/*" style="display:none" onchange="onUploadPick(event)" />
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost" style="margin-top:0;flex:1" onclick="document.getElementById('upInput').click()"><i class="fa-solid fa-camera"></i> Foto aufnehmen</button>
+        <button class="btn ghost" style="margin-top:0;flex:1" onclick="document.getElementById('upInputGallery').click()"><i class="fa-solid fa-images"></i> Aus Galerie wählen</button>
+      </div>
       <label class="fld" style="margin-top:12px">Kategorie</label>
       <select id="upCat" onchange="fillUploadEntries()"></select>
       <label class="fld">Eintrag</label>
@@ -531,52 +548,54 @@
 <div class="modal" id="addModal" onclick="if(event.target===this)closeAdd()">
   <div class="sheet" style="border-radius:24px 24px 0 0;max-height:94vh"><div class="pad">
     <h2 style="margin:0 0 4px;font-size:20px;font-weight:800">Eintrag hinzufügen</h2>
-    <p style="font-size:12.5px;color:var(--muted);margin:0 0 14px">Ausfüllen → „SQL erzeugen" → in Supabase einfügen &amp; ausführen → Seite neu laden. Pflichtfelder *.</p>
+    <p style="font-size:12.5px;color:var(--muted);margin:0 0 6px">Ausfüllen und auf <b>Speichern</b> tippen – der Eintrag erscheint sofort. Felder mit * sind Pflicht.</p>
 
+    <div class="addsec"><span class="num">1</span> Grundangaben</div>
     <label class="fld">Name *</label>
     <input id="ad_name" type="text" placeholder="z. B. Tramadol 100 mg - ratiopharm" />
-
     <label class="fld">Kategorie *</label>
     <select id="ad_kat">
-      <option value="arznei">Arzneimittel</option>
-      <option value="btm">Betäubungsmittel / Droge</option>
-      <option value="waffe">Waffe / Gegenstand</option>
+      <option value="arznei">💉 Arzneimittel</option>
+      <option value="btm">💊 Betäubungsmittel / Droge</option>
+      <option value="waffe">🔫 Waffe / Gegenstand</option>
     </select>
+    <label class="fld">Status *</label>
+    <input type="hidden" id="ad_ampel" value="gelb" />
+    <div class="ampelsel" id="ad_ampelsel">
+      <button type="button" data-v="rot" onclick="pickAmpel('rot',this)"><span class="em">🔴</span>Verboten / Straftat</button>
+      <button type="button" data-v="gelb" class="on" onclick="pickAmpel('gelb',this)"><span class="em">🟡</span>Eingeschränkt</button>
+      <button type="button" data-v="gruen" onclick="pickAmpel('gruen',this)"><span class="em">🟢</span>Erlaubt / frei</button>
+    </div>
 
-    <label class="fld">Status (Ampel) *</label>
-    <select id="ad_ampel">
-      <option value="rot">🔴 Rot – verboten / Straftat</option>
-      <option value="gelb">🟡 Gelb – eingeschränkt / Vorschriften</option>
-      <option value="gruen">🟢 Grün – erlaubt / frei</option>
-    </select>
-
+    <div class="addsec"><span class="num">2</span> Beschreibung <span style="font-weight:500;text-transform:none;color:var(--muted);letter-spacing:0">· optional</span></div>
     <label class="fld">Einstufung (kurz)</label>
     <input id="ad_einstufung" type="text" placeholder="z. B. Verschreibungspflichtig" />
-
-    <label class="fld">Wirkstoff / Erkennung (optional)</label>
+    <label class="fld">Wirkstoff / Erkennung</label>
     <input id="ad_wirkstoff" type="text" placeholder="z. B. Tramadol" />
-
-    <label class="fld">Kurzbeschreibung (optional)</label>
+    <label class="fld">Kurzbeschreibung</label>
     <input id="ad_kurz" type="text" placeholder="kurzer Satz für die Trefferliste" />
 
-    <label class="fld">Gesetz / Rechtsgrundlage (optional)</label>
+    <div class="addsec"><span class="num">3</span> Rechtliches <span style="font-weight:500;text-transform:none;color:var(--muted);letter-spacing:0">· optional</span></div>
+    <label class="fld">Gesetz / Rechtsgrundlage</label>
     <input id="ad_gesetz" type="text" placeholder="z. B. AMG § 48 / BtMG Anlage III / WaffG …" />
-
-    <label class="fld">Folgen bei Besitz (optional)</label>
+    <label class="fld">Folgen bei Besitz</label>
     <input id="ad_besitz" type="text" placeholder="z. B. nicht strafbewehrt / Freiheitsstrafe bis …" />
-
-    <label class="fld">Folgen bei Handel/Führen (optional)</label>
+    <label class="fld">Folgen bei Handel / Führen</label>
     <input id="ad_handel" type="text" placeholder="z. B. § 95 AMG / § 29 BtMG …" />
 
-    <label class="fld">Bild</label>
+    <div class="addsec"><span class="num">4</span> Bild <span style="font-weight:500;text-transform:none;color:var(--muted);letter-spacing:0">· optional</span></div>
     <input id="ad_photo_input" type="file" accept="image/*" capture="environment" style="display:none" onchange="addPhotoPick(event)" />
-    <button class="btn ghost" style="margin-top:0" onclick="document.getElementById('ad_photo_input').click()"><i class="fa-solid fa-image"></i> Foto vom Gerät wählen</button>
+    <input id="ad_photo_gallery" type="file" accept="image/*" style="display:none" onchange="addPhotoPick(event)" />
+    <div style="display:flex;gap:8px">
+      <button class="btn ghost" style="margin-top:0;flex:1" onclick="document.getElementById('ad_photo_input').click()"><i class="fa-solid fa-camera"></i> Aufnehmen</button>
+      <button class="btn ghost" style="margin-top:0;flex:1" onclick="document.getElementById('ad_photo_gallery').click()"><i class="fa-solid fa-images"></i> Aus Galerie</button>
+    </div>
     <img id="ad_photo_prev" alt="Vorschau" style="display:none;width:100%;max-height:180px;object-fit:contain;border-radius:11px;background:var(--primary);margin-top:8px" />
     <div id="ad_photo_info" style="font-size:12px;color:var(--muted);margin:4px 2px"></div>
-    <label class="fld" style="margin-top:8px">…oder Bild-URL (optional)</label>
-    <input id="ad_bild" type="text" placeholder="https://… (sonst eigenes Foto / Auto-Suche / Symbol)" />
+    <label class="fld" style="margin-top:6px">…oder Bild-URL</label>
+    <input id="ad_bild" type="text" placeholder="https://… (sonst Foto / Auto-Suche / Symbol)" />
 
-    <button class="btn primary" style="margin-top:16px" onclick="saveEntry()"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
+    <button class="btn primary" style="margin-top:18px" onclick="saveEntry()"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
     <button class="btn ghost" onclick="closeAdd()">Abbrechen</button>
     <div class="ai-status" id="ad_status"></div>
 
@@ -1613,6 +1632,12 @@ function openAdd(){
   const pv=document.getElementById('ad_photo_prev'); if(pv){ pv.style.display='none'; pv.src=''; }
   const inf=document.getElementById('ad_photo_info'); if(inf) inf.textContent='';
   const fi=document.getElementById('ad_photo_input'); if(fi) fi.value='';
+  const fg=document.getElementById('ad_photo_gallery'); if(fg) fg.value='';
+  pickAmpel('gelb', document.querySelector('#ad_ampelsel button[data-v="gelb"]'));
+}
+function pickAmpel(v,el){
+  document.getElementById('ad_ampel').value=v;
+  document.querySelectorAll('#ad_ampelsel button').forEach(b=>b.classList.toggle('on',b===el));
 }
 function addPhotoPick(ev){
   const f=ev.target.files&&ev.target.files[0]; if(!f) return;
