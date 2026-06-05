@@ -576,14 +576,14 @@
     <label class="fld" style="margin-top:8px">…oder Bild-URL (optional)</label>
     <input id="ad_bild" type="text" placeholder="https://… (sonst eigenes Foto / Auto-Suche / Symbol)" />
 
-    <button class="btn primary" style="margin-top:16px" onclick="buildAddSQL()"><i class="fa-solid fa-database"></i> SQL erzeugen</button>
+    <button class="btn primary" style="margin-top:16px" onclick="saveEntry()"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
     <button class="btn ghost" onclick="closeAdd()">Abbrechen</button>
+    <div class="ai-status" id="ad_status"></div>
 
-    <div id="ad_out" style="display:none;margin-top:14px">
-      <label class="fld">SQL – in Supabase (SQL Editor) einfügen &amp; „Run"</label>
-      <textarea id="ad_sql" readonly style="width:100%;height:120px;border:1px solid var(--line);border-radius:11px;padding:11px;font-family:monospace;font-size:11.5px;background:var(--card);color:var(--ink)"></textarea>
-      <button class="btn primary" style="margin-top:8px" onclick="copyAddSQL()"><i class="fa-solid fa-copy"></i> SQL kopieren</button>
-      <div class="ai-status" id="ad_status"></div>
+    <div id="ad_out" style="display:none;margin-top:10px">
+      <label class="fld">Alternative: SQL für Supabase (manuell)</label>
+      <textarea id="ad_sql" readonly style="width:100%;height:110px;border:1px solid var(--line);border-radius:11px;padding:11px;font-family:monospace;font-size:11.5px;background:var(--card);color:var(--ink)"></textarea>
+      <button class="btn ghost" style="margin-top:6px" onclick="copyAddSQL()"><i class="fa-solid fa-copy"></i> SQL kopieren</button>
     </div>
   </div></div>
 </div>
@@ -1634,12 +1634,12 @@ function addPhotoPick(ev){
 }
 function closeAdd(){ document.getElementById('addModal').classList.remove('open'); }
 function adVal(id){ return (document.getElementById(id).value||'').trim(); }
-function buildAddSQL(){
+function buildEntryDoc(){
   const name=adVal('ad_name'); const kat=adVal('ad_kat'); const ampel=adVal('ad_ampel');
-  if(!name){ alert('Bitte einen Namen eingeben.'); return; }
+  if(!name) return null;
   const slug=name.toLowerCase().replace(/[äöü]/g,m=>({'ä':'ae','ö':'oe','ü':'ue'}[m])).replace(/ß/g,'ss').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
   const id='u-'+(slug||('eintrag-'+Date.now()));
-  const doc={
+  return {
     id:id, kategorie:kat, name:name, ampel:ampel,
     einstufung:adVal('ad_einstufung')||STATUS_TEXT[ampel],
     wirkstoff:adVal('ad_wirkstoff'), synonyme:adVal('ad_wirkstoff')?[adVal('ad_wirkstoff')]:[],
@@ -1648,11 +1648,35 @@ function buildAddSQL(){
     folgenHandel:adVal('ad_handel')?('Handel/Führen: '+adVal('ad_handel')):'',
     begruendung:adVal('ad_kurz'), bild:(addPhotoDataUrl||adVal('ad_bild')), quellen:[], eigen:true
   };
+}
+function setAdStatus(msg,cls){ const el=document.getElementById('ad_status'); el.className='ai-status '+(cls||''); el.textContent=msg; }
+async function saveEntry(){
+  const doc=buildEntryDoc();
+  if(!doc){ alert('Bitte einen Namen eingeben.'); return; }
+  const c=supa();
+  if(!c){ setAdStatus('Supabase nicht verfügbar. Nutze unten „SQL kopieren".','err'); buildAddSQL(); return; }
+  setAdStatus('Speichere …','work');
+  try{
+    const {error}=await c.from('eintraege').upsert({id:doc.id,kategorie:doc.kategorie,name:doc.name,ampel:doc.ampel,doc:doc});
+    if(error) throw error;
+    const idx=DATA.findIndex(d=>d.id===doc.id); if(idx>=0) DATA[idx]=doc; else DATA.push(doc);
+    enrichLegal(); renderCats(); render(); renderFavoriten();
+    setAdStatus('✓ Gespeichert! Der Eintrag ist jetzt in der Datenbank.','');
+    setTimeout(()=>{ closeAdd(); openDetail(doc.id); }, 800);
+  }catch(err){
+    const m=(err&&err.message)||String(err);
+    setAdStatus('Speichern fehlgeschlagen: '+m,'err');
+    // Hinweis bei fehlendem Schreibrecht + SQL als Ausweg anbieten
+    if(/permission|policy|denied|row-level|42501/i.test(m)) setAdStatus('Speichern fehlgeschlagen: In Supabase fehlt noch das Schreibrecht (RLS-Policy). Siehe Hinweis – oder unten „SQL kopieren".','err');
+    buildAddSQL();
+  }
+}
+function buildAddSQL(){
+  const doc=buildEntryDoc(); if(!doc){ alert('Bitte einen Namen eingeben.'); return; }
   const j=JSON.stringify(doc).split("'").join("''");
-  const sql="insert into public.eintraege (id,kategorie,name,ampel,doc)\nvalues ('"+id+"','"+kat+"','"+name.split("'").join("''")+"','"+ampel+"','"+j+"'::jsonb)\non conflict (id) do update set kategorie=excluded.kategorie, name=excluded.name, ampel=excluded.ampel, doc=excluded.doc, updated_at=now();";
+  const sql="insert into public.eintraege (id,kategorie,name,ampel,doc)\nvalues ('"+doc.id+"','"+doc.kategorie+"','"+doc.name.split("'").join("''")+"','"+doc.ampel+"','"+j+"'::jsonb)\non conflict (id) do update set kategorie=excluded.kategorie, name=excluded.name, ampel=excluded.ampel, doc=excluded.doc, updated_at=now();";
   document.getElementById('ad_sql').value=sql;
   document.getElementById('ad_out').style.display='block';
-  document.getElementById('ad_status').textContent='';
   document.getElementById('ad_sql').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 async function copyAddSQL(){
@@ -1853,11 +1877,16 @@ function updateDataSourceLabel(){
   const el=document.getElementById('dataSource');
   if(el) el.innerHTML='Datenquelle: <b>'+DATA_SOURCE+'</b> · '+DATA.length+' Einträge';
 }
+/* Gemeinsamer Supabase-Client (für Laden + Speichern) */
+function supa(){
+  if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+  if(!(window.supabase && window.supabase.createClient)) return null;
+  if(!supa._c) supa._c=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return supa._c;
+}
 async function loadFromSupabase(){
-  if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return;            // nicht konfiguriert -> Fallback
-  if(!(window.supabase && window.supabase.createClient)) return;
+  const client=supa(); if(!client) return;                   // nicht konfiguriert -> Fallback
   try{
-    const client=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const PAGE=1000; let from=0; const rows=[];
     while(true){
       const {data,error}=await client.from('eintraege').select('doc').range(from, from+PAGE-1);
