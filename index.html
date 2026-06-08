@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Datenbank" />
+<script>/* Theme früh setzen (kein Flackern) */(function(){try{var t=localStorage.getItem('ra_theme')||'auto';var dark=t==='dark'||(t==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.dataset.theme=dark?'dark':'light';}catch(e){}})();</script>
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <link rel="icon" href="icon-192.png" />
@@ -32,6 +33,14 @@
     --ease-in-out:cubic-bezier(0.77,0,0.175,1);
     --ease-drawer:cubic-bezier(0.32,0.72,0,1);
   }
+  html[data-theme="dark"]{
+    --bg:#0b1220; --card:#1e293b; --ink:#e8edf5; --muted:#9aa7b8; --line:#334155;
+    --rot:#f87171; --rot-bg:#3a1416; --rot-line:#7f1d1d;
+    --gelb:#fbbf24; --gelb-bg:#3a2c0f; --gelb-line:#92660a;
+    --gruen:#4ade80; --gruen-bg:#0f2e1c; --gruen-line:#166534;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4); --shadow:0 4px 10px rgba(0,0,0,.45); --shadow-lg:0 12px 28px rgba(0,0,0,.55);
+  }
+  html[data-theme="dark"] .thumb,html[data-theme="dark"] .simcard .si{background:#0b1220}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   /* Druck-Feedback: jedes drückbare Element reagiert sofort */
   .btn,.tile,.card,.catcard,.provbtn,.chipsel button,.ampelsel button,.fab,nav.bottom button,.iconbtn,.botcard,.simcard,.srclink,.botchips button{transition:transform 140ms var(--ease-out),box-shadow .2s var(--ease-out),background .15s ease,color .15s ease,border-color .15s ease}
@@ -492,6 +501,18 @@
     </div>
 
     <div class="panel">
+      <h3><i class="fa-solid fa-circle-half-stroke"></i> Darstellung &amp; Hilfe</h3>
+      <label class="fld">Design</label>
+      <div class="chipsel" id="themeSel">
+        <button data-v="auto" onclick="setTheme('auto',this)">Automatisch</button>
+        <button data-v="light" onclick="setTheme('light',this)">Hell</button>
+        <button data-v="dark" onclick="setTheme('dark',this)">Dunkel</button>
+      </div>
+      <button class="btn ghost" style="margin-top:8px" onclick="showOnboarding(true)"><i class="fa-solid fa-circle-question"></i> Kurze Einführung anzeigen</button>
+      <button class="btn ghost" onclick="go('rechtliches',null)"><i class="fa-solid fa-scale-balanced"></i> Impressum &amp; Datenschutz</button>
+    </div>
+
+    <div class="panel">
       <h3><i class="fa-solid fa-robot"></i> KI aktivieren (optional)</h3>
       <p>Für ausformulierte Bot-Antworten und automatische Foto-Analyse kannst du einen KI-Schlüssel hinterlegen. Er wird <b>nur lokal auf diesem Gerät</b> gespeichert. Ohne Schlüssel funktioniert die App über lokale Suche &amp; Teilen-Funktion.</p>
       <label class="fld">Anbieter</label>
@@ -556,6 +577,37 @@
     <div class="pagetitle">Freigaben</div>
     <p class="sub" style="margin:0 0 12px">Von Besuchern eingereichte Einträge – prüfen und genehmigen oder ablehnen.</p>
     <div class="results" id="pendResults"></div>
+  </section>
+
+  <!-- ============ RECHTLICHES ============ -->
+  <section id="view-rechtliches" class="view">
+    <div class="pagetitle">Rechtliches</div>
+    <div class="panel">
+      <h3><i class="fa-solid fa-circle-info"></i> Impressum</h3>
+      <p style="font-size:13.5px;white-space:pre-line">Angaben gemäß § 5 TMG:
+
+<b>[Dein Name]</b>
+[Straße &amp; Hausnummer]
+[PLZ Ort]
+
+Kontakt: [E-Mail]</p>
+      <p><small>Bitte trage hier deine ladungsfähigen Angaben ein (Platzhalter in eckigen Klammern). Ich kann das für dich einfügen, wenn du mir die Daten gibst.</small></p>
+    </div>
+    <div class="panel">
+      <h3><i class="fa-solid fa-user-shield"></i> Datenschutzerklärung (Kurzfassung)</h3>
+      <p style="font-size:13px;white-space:pre-line">Diese App ist ein reines Informations-Werkzeug. Es gibt <b>kein Tracking</b> und keine Werbung.
+
+<b>Lokal auf deinem Gerät</b> (Browser-Speicher) werden gespeichert: Favoriten, zugeordnete Fotos, Design-Einstellung und – falls eingetragen – dein KI-Schlüssel. Diese Daten verlassen dein Gerät nicht (außer der KI-Schlüssel beim KI-Aufruf).
+
+<b>Datenbank (Supabase):</b> Die Einträge werden von Supabase geladen. Beim Einreichen/Bearbeiten werden die eingegebenen Inhalte an Supabase übertragen und dort gespeichert (Server in der gewählten Region).
+
+<b>Externe Dienste:</b> Schrift/Icons (Google Fonts, Font Awesome via CDN), Bilder (Wikipedia), optionale KI (Google Gemini bzw. Anthropic) – dabei wird deine IP-Adresse an die jeweiligen Anbieter übertragen.
+
+<b>Hosting:</b> Vercel. Es können technisch bedingte Server-Logs (z. B. IP) anfallen.
+
+Verantwortlich: siehe Impressum. Du hast das Recht auf Auskunft, Berichtigung und Löschung.</p>
+      <p><small>Hinweis: vereinfachte Vorlage, keine Rechtsberatung. Im Zweifel anwaltlich prüfen lassen.</small></p>
+    </div>
   </section>
 
 </main>
@@ -656,6 +708,28 @@
       <textarea id="ad_sql" readonly style="width:100%;height:110px;border:1px solid var(--line);border-radius:11px;padding:11px;font-family:monospace;font-size:11.5px;background:var(--card);color:var(--ink)"></textarea>
       <button class="btn ghost" style="margin-top:6px" onclick="copyAddSQL()"><i class="fa-solid fa-copy"></i> SQL kopieren</button>
     </div>
+  </div></div>
+</div>
+
+<!-- ONBOARDING -->
+<div class="modal" id="onbModal" onclick="if(event.target===this)closeOnboarding()">
+  <div class="sheet" style="border-radius:24px 24px 0 0"><div class="pad">
+    <h2 style="margin:0 0 6px;font-size:21px;font-weight:800">Willkommen 👋</h2>
+    <p style="font-size:13.5px;color:var(--muted);margin:0 0 14px">Schnelle Einordnung von Waffen, Betäubungsmitteln &amp; Arzneimitteln.</p>
+    <div class="block"><h4><i class="fa-solid fa-traffic-light" style="color:var(--accent)"></i> Ampel-Prinzip</h4>
+      <ul class="feat">
+        <li><i class="fa-solid fa-circle" style="color:var(--rot)"></i><span><b>Rot</b> – verboten / Straftat</span></li>
+        <li><i class="fa-solid fa-circle" style="color:var(--gelb)"></i><span><b>Gelb</b> – eingeschränkt / besondere Vorschriften</span></li>
+        <li><i class="fa-solid fa-circle" style="color:var(--gruen)"></i><span><b>Grün</b> – erlaubt / frei</span></li>
+      </ul></div>
+    <div class="block"><h4><i class="fa-solid fa-magnifying-glass" style="color:var(--accent)"></i> So findest du etwas</h4>
+      <ul class="feat">
+        <li><i class="fa-solid fa-circle"></i><span><b>Suche</b> nach Name, Wirkstoff oder Prägung</span></li>
+        <li><i class="fa-solid fa-circle"></i><span><b>Roboter-Knopf</b> 🤖 unten rechts: einfach fragen</span></li>
+        <li><i class="fa-solid fa-circle"></i><span><b>Kamera</b>: Foto analysieren · <b>„+"</b> oben: Eintrag hinzufügen</span></li>
+      </ul></div>
+    <div class="mini-disc"><i class="fa-solid fa-triangle-exclamation"></i><div>Keine Rechtsberatung, keine Gewähr. Maßgeblich sind die amtlichen Quellen.</div></div>
+    <button class="btn primary" style="margin-top:14px" onclick="closeOnboarding()"><i class="fa-solid fa-check"></i> Los geht's</button>
   </div></div>
 </div>
 
@@ -1525,13 +1599,23 @@ function cardHTML(it){
   </div>`;
 }
 
+/* Tippfehler-tolerante Suche (Levenshtein) als Fallback */
+function lev(a,b){ const m=a.length,n=b.length; if(!m)return n; if(!n)return m; const d=Array.from({length:n+1},(_,i)=>i); for(let i=1;i<=m;i++){ let prev=d[0]; d[0]=i; for(let j=1;j<=n;j++){ const t=d[j]; d[j]=Math.min(d[j]+1,d[j-1]+1,prev+(a[i-1]===b[j-1]?0:1)); prev=t; } } return d[n]; }
+function fuzzyHit(item,nq){
+  if(nq.length<4) return false;
+  const thr=nq.length<=6?1:2;
+  const words=[item.name,item.wirkstoff,...(item.synonyme||[])].join(' ').toLowerCase().split(/[^a-zäöüß0-9]+/).map(norm).filter(w=>w.length>=3);
+  return words.some(w=> Math.abs(w.length-nq.length)<=thr && lev(w,nq)<=thr);
+}
 function render(){
   const inp=document.getElementById('search');
   const q=inp?inp.value.trim():'';
   if(document.getElementById('searchClear')) document.getElementById('searchClear').style.display=q?'block':'none';
-  const list=DATA.filter(d=>(CAT==='alle'||d.kategorie===CAT)&&(STATUS==='alle'||d.ampel===STATUS)&&matches(d,q));
+  let list=DATA.filter(d=>(CAT==='alle'||d.kategorie===CAT)&&(STATUS==='alle'||d.ampel===STATUS)&&matches(d,q));
+  let fuzzy=false;
+  if(!list.length && q.length>=4){ const nq=norm(q); const f=DATA.filter(d=>(CAT==='alle'||d.kategorie===CAT)&&(STATUS==='alle'||d.ampel===STATUS)&&fuzzyHit(d,nq)); if(f.length){ list=f; fuzzy=true; } }
   const box=document.getElementById('results');
-  document.getElementById('count').textContent=list.length+(list.length===1?' Ergebnis':' Ergebnisse');
+  document.getElementById('count').textContent=(fuzzy?'Meintest du …? ':'')+list.length+(list.length===1?' Ergebnis':' Ergebnisse');
   document.getElementById('filterBtn').classList.toggle('on',CAT!=='alle'||STATUS!=='alle');
   box.innerHTML=list.length?list.map(cardHTML).join(''):`<div class="empty"><i class="fa-solid fa-magnifying-glass"></i>Keine Treffer.<br><small>Anderen Begriff versuchen oder Filter zurücksetzen.</small></div>`;
   if(list.length) schedulePrefetch(list);
@@ -1654,7 +1738,7 @@ function openDetail(id,keepScroll){
     <div class="hero">
       <img id="heroImg" src="${mainImg(it)}" alt="" data-imgq="${(imgQuery(it)).replace(/"/g,'&quot;')}" onerror="this.onerror=null;this.src='${fb}'" onclick="openLightbox(this.src)">
       <div class="grad"></div>
-      <div class="htop"><button onclick="closeDetail()"><i class="fa-solid fa-arrow-left"></i></button><span class="sp"></span><button onclick="toggleFav('${it.id}',event)" style="color:${isFav(it.id)?'#f59e0b':'#fff'}"><i class="fa-${isFav(it.id)?'solid':'regular'} fa-star"></i></button></div>
+      <div class="htop"><button onclick="closeDetail()"><i class="fa-solid fa-arrow-left"></i></button><span class="sp"></span><button onclick="shareEntry('${it.id}')" aria-label="Teilen"><i class="fa-solid fa-share-nodes"></i></button><button onclick="toggleFav('${it.id}',event)" style="color:${isFav(it.id)?'#f59e0b':'#fff'}"><i class="fa-${isFav(it.id)?'solid':'regular'} fa-star"></i></button></div>
       <div class="hmeta"><div class="cat">${CAT_INFO[it.kategorie]?CAT_INFO[it.kategorie].label:''}</div><h2>${it.name}</h2></div>
     </div>
     <div class="pad">
@@ -1667,13 +1751,41 @@ function openDetail(id,keepScroll){
   const m=document.getElementById('modal');
   m.classList.add('open');
   if(!keepScroll) m.querySelector('.sheet').scrollTop=0;
+  try{ history.replaceState(null,'',location.pathname+'?id='+encodeURIComponent(it.id)); }catch(e){}
   // Bild best effort von Wikipedia nachladen, falls nur Symbol-Fallback
   if(!userImgsFor(it.id).length && !it.bild && !cachedImg(it)){
     const q=imgQuery(it);
     fetchWikiImg(it).then(src=>{ if(src){ const hi=document.getElementById('heroImg'); if(hi&&hi.getAttribute('data-imgq')===q) hi.src=src; applyImg(q,src); } });
   }
 }
-function closeDetail(){ document.getElementById('modal').classList.remove('open'); }
+function closeDetail(){ document.getElementById('modal').classList.remove('open'); try{ history.replaceState(null,'',location.pathname); }catch(e){} }
+function shareEntry(id){
+  const url=location.origin+location.pathname+'?id='+encodeURIComponent(id);
+  const it=DATA.find(d=>d.id===id); const title=(it&&it.name)||'Eintrag';
+  if(navigator.share){ navigator.share({title:title,text:title,url:url}).catch(()=>{}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(url).then(()=>alert('Link kopiert:\n'+url)).catch(()=>prompt('Link kopieren:',url)); }
+  else { prompt('Link kopieren:',url); }
+}
+function openFromUrl(){
+  try{ const id=new URLSearchParams(location.search).get('id');
+    if(id && DATA.find(d=>d.id===id) && !document.getElementById('modal').classList.contains('open')) openDetail(id);
+  }catch(e){}
+}
+/* Theme */
+function applyTheme(mode){
+  const dark = mode==='dark' || (mode==='auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme:dark)').matches);
+  document.documentElement.dataset.theme = dark?'dark':'light';
+  const tc=document.querySelector('meta[name="theme-color"]'); if(tc) tc.setAttribute('content', dark?'#0b1220':'#0F172A');
+}
+function getTheme(){ try{return localStorage.getItem('ra_theme')||'auto';}catch(e){return 'auto';} }
+function setTheme(mode,el){
+  try{ localStorage.setItem('ra_theme',mode); }catch(e){}
+  applyTheme(mode);
+  document.querySelectorAll('#themeSel button').forEach(b=>b.classList.toggle('on', el?(b===el):(b.dataset.v===mode)));
+}
+/* Onboarding */
+function showOnboarding(force){ if(!force){ try{ if(localStorage.getItem('ra_onboarded')) return; }catch(e){} } document.getElementById('onbModal').classList.add('open'); }
+function closeOnboarding(){ document.getElementById('onbModal').classList.remove('open'); try{ localStorage.setItem('ra_onboarded','1'); }catch(e){} }
 
 /* ---- Lightbox ---- */
 function openLightbox(src){ document.getElementById('lightboxImg').src=src; document.getElementById('lightbox').classList.add('open'); }
@@ -1686,7 +1798,7 @@ function go(view,el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
   document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.remove('active'));
-  const navMap={start:'nav-start',suche:'nav-start',favoriten:'nav-favoriten',kamera:'nav-kamera',kategorien:'nav-kategorien',profil:'nav-profil',freigaben:'nav-profil'};
+  const navMap={start:'nav-start',suche:'nav-start',favoriten:'nav-favoriten',kamera:'nav-kamera',kategorien:'nav-kategorien',profil:'nav-profil',freigaben:'nav-profil',rechtliches:'nav-profil'};
   const navEl=document.getElementById(navMap[view]); if(navEl) navEl.classList.add('active');
   if(view==='favoriten') renderFavoriten();
   if(view==='freigaben') renderPending();
@@ -2217,14 +2329,17 @@ function init(){
   enrichLegal();
   renderCats(); renderSources(); fillUploadEntries(); renderMyImgs(); updateFavSummary(); updateDataSourceLabel();
   ['standHome','standProfil'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=STAND; });
-  setProvider(getProvider()); render();
+  setProvider(getProvider()); setTheme(getTheme()); render();
+  openFromUrl();        // Deep-Link ?id= öffnen, falls Eintrag schon vorhanden
   checkAdmin();         // Admin-Session prüfen
-  loadFromSupabase();   // im Hintergrund; ersetzt Daten, wenn Supabase erreichbar
+  loadFromSupabase().then(()=>openFromUrl());   // nach Laden erneut versuchen (DB-Einträge)
   // Schließe Vorschläge bei Klick außerhalb
   document.addEventListener('click',e=>{ const sb=document.querySelector('#view-start .searchbar'); if(sb&&!sb.contains(e.target)) document.getElementById('homeSuggest').classList.remove('open'); });
-  // Splash
+  // Splash + Onboarding beim ersten Start
   const splash=document.getElementById('splash');
-  if(splash){ const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches; setTimeout(()=>{splash.classList.add('hide'); setTimeout(()=>splash.remove(),600);}, reduce?300:1900); }
+  const afterSplash=()=>{ if(!new URLSearchParams(location.search).get('id')) showOnboarding(false); };
+  if(splash){ const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches; setTimeout(()=>{splash.classList.add('hide'); setTimeout(()=>{splash.remove(); afterSplash();},600);}, reduce?300:1900); }
+  else afterSplash();
 }
 init();
 </script>
