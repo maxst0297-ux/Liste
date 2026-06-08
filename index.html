@@ -548,7 +548,10 @@
 <!-- EINTRAG HINZUFÜGEN -->
 <div class="modal" id="addModal" onclick="if(event.target===this)closeAdd()">
   <div class="sheet" style="border-radius:24px 24px 0 0;max-height:94vh"><div class="pad">
-    <h2 style="margin:0 0 4px;font-size:20px;font-weight:800">Eintrag hinzufügen</h2>
+    <div style="position:sticky;top:0;background:var(--bg);z-index:2;display:flex;align-items:center;gap:10px;margin:-2px -2px 4px;padding:4px 0 8px;border-bottom:1px solid var(--line)">
+      <h2 style="margin:0;font-size:20px;font-weight:800;flex:1">Eintrag hinzufügen</h2>
+      <button onclick="closeAdd()" aria-label="Schließen" style="width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:17px;cursor:pointer;flex:0 0 auto"><i class="fa-solid fa-xmark"></i></button>
+    </div>
     <p style="font-size:12.5px;color:var(--muted);margin:0 0 6px">Ausfüllen und auf <b>Speichern</b> tippen – der Eintrag erscheint sofort. Felder mit * sind Pflicht.</p>
 
     <div class="addsec"><span class="num">1</span> Grundangaben</div>
