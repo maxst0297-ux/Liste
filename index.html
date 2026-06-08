@@ -103,6 +103,7 @@
   .catcard.btm{background:linear-gradient(135deg,#7c3aed,#a855f7)}
   .catcard.waffe{background:linear-gradient(135deg,#dc2626,#ef4444)}
   .catcard.arznei{background:linear-gradient(135deg,#0891b2,#06b6d4)}
+  .catcard.sonstiges{background:linear-gradient(135deg,#475569,#64748b)}
   .catcard .cic{font-size:30px}
   .catcard h3{margin:6px 0 2px;font-size:18px;font-weight:800}
   .catcard p{margin:0;font-size:12.5px;opacity:.92}
@@ -530,6 +531,7 @@
       <button data-v="btm" onclick="pickFilter('cat','btm',this)">Betäubungsmittel</button>
       <button data-v="waffe" onclick="pickFilter('cat','waffe',this)">Waffen</button>
       <button data-v="arznei" onclick="pickFilter('cat','arznei',this)">Arzneimittel</button>
+      <button data-v="sonstiges" onclick="pickFilter('cat','sonstiges',this)">Extra</button>
     </div>
     <label class="fld" style="margin-top:12px">Rechtlicher Status</label>
     <div class="chipsel" id="fStatus">
@@ -557,6 +559,7 @@
       <option value="arznei">💉 Arzneimittel</option>
       <option value="btm">💊 Betäubungsmittel / Droge</option>
       <option value="waffe">🔫 Waffe / Gegenstand</option>
+      <option value="sonstiges">🗂️ Extra / Sonstiges</option>
     </select>
     <label class="fld">Status *</label>
     <input type="hidden" id="ad_ampel" value="gelb" />
@@ -593,6 +596,11 @@
     <div id="ad_photo_info" style="font-size:12px;color:var(--muted);margin:4px 2px"></div>
     <label class="fld" style="margin-top:6px">…oder Bild-URL</label>
     <input id="ad_bild" type="text" placeholder="https://… (sonst Foto / Auto-Suche / Symbol)" />
+
+    <div class="addsec"><span class="num">5</span> Datei anhängen <span style="font-weight:500;text-transform:none;color:var(--muted);letter-spacing:0">· optional, max. 3 MB</span></div>
+    <input id="ad_file" type="file" style="display:none" onchange="addFilePick(event)" />
+    <button class="btn ghost" style="margin-top:0" onclick="document.getElementById('ad_file').click()"><i class="fa-solid fa-paperclip"></i> Datei wählen (PDF, Bild, Dokument)</button>
+    <div id="ad_file_info" style="font-size:12px;color:var(--muted);margin:6px 2px"></div>
 
     <button class="btn primary" style="margin-top:18px" onclick="saveEntry()"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
     <button class="btn ghost" onclick="closeAdd()">Abbrechen</button>
@@ -1340,7 +1348,8 @@ function enrichLegal(){ enrichWeapons(); enrichBtm(); }
 const CAT_INFO = {
   btm:    {label:'Betäubungsmittel', icon:'fa-pills',  emoji:'💊', desc:'Illegale und kontrollierte Substanzen'},
   waffe:  {label:'Waffen',           icon:'fa-gun',    emoji:'🔫', desc:'Waffen und gefährliche Gegenstände'},
-  arznei: {label:'Arzneimittel',     icon:'fa-syringe',emoji:'💉', desc:'Medikamente und Wirkstoffe'}
+  arznei: {label:'Arzneimittel',     icon:'fa-syringe',emoji:'💉', desc:'Medikamente und Wirkstoffe'},
+  sonstiges:{label:'Extra / Sonstiges', icon:'fa-folder-plus', emoji:'🗂️', desc:'Eigene Einträge & Dateien'}
 };
 const STATUS_TEXT = {rot:'Verboten / Straftat', gelb:'Eingeschränkt / Vorsicht', gruen:'Erlaubt / frei'};
 const STATUS_ICON = {rot:'fa-ban', gelb:'fa-triangle-exclamation', gruen:'fa-circle-check'};
@@ -1523,7 +1532,7 @@ function catCardHTML(cat){
   </div>`;
 }
 function renderCats(){
-  const html=['btm','waffe','arznei'].map(catCardHTML).join('');
+  const html=['btm','waffe','arznei','sonstiges'].map(catCardHTML).join('');
   document.getElementById('homeCats').innerHTML=html;
   document.getElementById('allCats').innerHTML=html;
 }
@@ -1592,6 +1601,7 @@ function openDetail(id,keepScroll){
   const gefahrBlock=gefahr.length?`<div class="block danger"><h4><i class="fa-solid fa-triangle-exclamation"></i> Gefahrenhinweise</h4>${gefahr.map(g=>`<div class="row"><div class="k">${g[0]}</div><div class="v">${g[1]}</div></div>`).join('')}</div>`:'';
 
   const syn=(it.synonyme&&it.synonyme.length)?`<div class="block"><h4><i class="fa-solid fa-tags"></i> Straßen- &amp; Szenebezeichnungen</h4><div class="chips">${it.synonyme.map(s=>`<span class="chip">${s}</span>`).join('')}</div></div>`:'';
+  const dateiBlock=(it.datei&&it.datei.data)?`<div class="block"><h4><i class="fa-solid fa-paperclip"></i> Datei</h4><a class="srclink" href="${it.datei.data}" download="${escapeHtml(it.datei.name||'datei')}" target="_blank" rel="noopener"><i class="fa-solid fa-file-arrow-down" style="color:var(--accent)"></i><span>${escapeHtml(it.datei.name||'Datei')} – öffnen / herunterladen</span><i class="fa-solid fa-chevron-right ext"></i></a></div>`:'';
 
   const srcLinks=(it.quellen||[]).map(k=>{const s=QUELLEN[k];if(!s)return '';return `<a class="srclink" href="${s.url}" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square" style="color:var(--accent)"></i><span>${s.titel}<br><small style="color:var(--muted)">${s.meta}</small></span><i class="fa-solid fa-chevron-right ext"></i></a>`;}).join('');
 
@@ -1604,7 +1614,7 @@ function openDetail(id,keepScroll){
     </div>
     <div class="pad">
       <div class="statusbig ${it.ampel}"><div class="ic"><i class="fa-solid ${STATUS_ICON[it.ampel]}"></i></div><div><div class="t1">${it.einstufung||STATUS_TEXT[it.ampel]}</div><div class="t2">Status: ${STATUS_TEXT[it.ampel]}</div></div></div>
-      ${legalBlock}${merkBlock}${idBlock}${gefahrBlock}${syn}${galleryHTML}${similarHTML(it)}
+      ${legalBlock}${merkBlock}${idBlock}${gefahrBlock}${syn}${galleryHTML}${dateiBlock}${similarHTML(it)}
       ${srcLinks?`<div class="block"><h4><i class="fa-solid fa-book"></i> Quellen</h4>${srcLinks}</div>`:''}
       <div class="mini-disc"><i class="fa-solid fa-triangle-exclamation"></i><div>Vereinfachte Orientierung, <b>keine Rechtsberatung, keine Gewähr</b>. Die Strafbarkeit hängt vom Einzelfall ab (Menge, Erlaubnis, Ort, Alter, Absicht). Maßgeblich sind die amtlichen Quellen. Stand: ${STAND}.</div></div>
     </div>`;
@@ -1650,7 +1660,19 @@ function openAdd(){
   const inf=document.getElementById('ad_photo_info'); if(inf) inf.textContent='';
   const fi=document.getElementById('ad_photo_input'); if(fi) fi.value='';
   const fg=document.getElementById('ad_photo_gallery'); if(fg) fg.value='';
+  addFileData=null;
+  const af=document.getElementById('ad_file'); if(af) af.value='';
+  const afi=document.getElementById('ad_file_info'); if(afi) afi.textContent='';
   pickAmpel('gelb', document.querySelector('#ad_ampelsel button[data-v="gelb"]'));
+}
+let addFileData=null;
+function addFilePick(ev){
+  const f=ev.target.files&&ev.target.files[0]; if(!f) return;
+  const info=document.getElementById('ad_file_info');
+  if(f.size > 3*1024*1024){ info.textContent='⚠️ Datei zu groß ('+(Math.round(f.size/1024/1024*10)/10)+' MB). Bitte max. 3 MB.'; ev.target.value=''; addFileData=null; return; }
+  const r=new FileReader();
+  r.onload=e=>{ addFileData={name:f.name, typ:f.type||'', data:e.target.result}; info.textContent='✓ Datei angehängt: '+f.name+' ('+Math.round(f.size/1024)+' KB)'; };
+  r.readAsDataURL(f);
 }
 function pickAmpel(v,el){
   document.getElementById('ad_ampel').value=v;
@@ -1678,7 +1700,8 @@ function buildEntryDoc(){
     kurz:adVal('ad_kurz'), gesetz:adVal('ad_gesetz'), rechtsgrundlage:adVal('ad_gesetz'),
     folgenBesitz:adVal('ad_besitz')?('Besitz/Erwerb: '+adVal('ad_besitz')):'',
     folgenHandel:adVal('ad_handel')?('Handel/Führen: '+adVal('ad_handel')):'',
-    begruendung:adVal('ad_kurz'), bild:(addPhotoDataUrl||adVal('ad_bild')), quellen:[], eigen:true
+    begruendung:adVal('ad_kurz'), bild:(addPhotoDataUrl||adVal('ad_bild')), quellen:[], eigen:true,
+    datei:(addFileData||null)
   };
 }
 function setAdStatus(msg,cls){ const el=document.getElementById('ad_status'); el.className='ai-status '+(cls||''); el.textContent=msg; }
