@@ -460,6 +460,22 @@
     <div class="pagetitle">Profil &amp; Einstellungen</div>
 
     <div class="panel">
+      <h3><i class="fa-solid fa-user-shield"></i> Admin</h3>
+      <div id="adminLoggedOut">
+        <p><small>Als Admin anmelden, um eingereichte Einträge freizugeben sowie Einträge zu bearbeiten/löschen.</small></p>
+        <input id="adminEmail" type="email" placeholder="E-Mail" autocomplete="username" />
+        <input id="adminPass" type="password" placeholder="Passwort" autocomplete="current-password" />
+        <button class="btn primary" style="width:auto;padding:10px 16px;font-size:13px" onclick="adminLogin()"><i class="fa-solid fa-right-to-bracket"></i> Anmelden</button>
+        <span id="adminMsg" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
+      </div>
+      <div id="adminLoggedIn" style="display:none">
+        <p><small>Angemeldet als <b id="adminWho"></b>.</small></p>
+        <button class="btn primary" style="margin-top:0" onclick="go('freigaben',null)"><i class="fa-solid fa-clipboard-check"></i> Freigaben <span id="pendCount"></span></button>
+        <button class="btn ghost" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Abmelden</button>
+      </div>
+    </div>
+
+    <div class="panel">
       <h3><i class="fa-solid fa-star"></i> Meine Favoriten</h3>
       <p id="favSummary"><small>Noch keine Favoriten gespeichert.</small></p>
       <button class="btn ghost" onclick="go('favoriten',document.getElementById('nav-favoriten'))" style="margin-top:0"><i class="fa-solid fa-star"></i> Favoriten ansehen</button>
@@ -498,6 +514,15 @@
     </div>
 
     <div class="panel">
+      <h3><i class="fa-solid fa-box-archive"></i> Backup &amp; Offline</h3>
+      <p><small>Alle Einträge als Datei sichern oder wiederherstellen. Zuletzt geladene Daten werden auch offline angezeigt.</small></p>
+      <button class="btn ghost" style="margin-top:0" onclick="exportBackup()"><i class="fa-solid fa-download"></i> Backup exportieren (JSON)</button>
+      <input id="importFile" type="file" accept="application/json,.json" style="display:none" onchange="importBackup(event)" />
+      <button class="btn ghost" onclick="document.getElementById('importFile').click()"><i class="fa-solid fa-upload"></i> Backup importieren</button>
+      <div class="ai-status" id="backupMsg"></div>
+    </div>
+
+    <div class="panel">
       <h3><i class="fa-solid fa-scale-balanced"></i> Vertrauenswürdige Quellen</h3>
       <p><small>Maßgeblich ist immer der amtliche Gesetzestext, nicht diese App.</small></p>
       <div class="srclist" id="srclist"></div>
@@ -514,6 +539,13 @@
       <p><small><b>Stand der Daten: <span id="standProfil"></span>.</b> Orientierungs-Werkzeug nach WaffG, BtMG und AMG. Einstufungen sind vereinfacht und im Zweifel konservativ. Die konkrete Strafbarkeit hängt vom Einzelfall ab (Menge, Erlaubnis, Ort, Alter, Absicht). <b>Keine Gewähr, keine Rechtsberatung</b>; maßgeblich sind die amtlichen Quellen. Die Medikamentenliste ist nicht abschließend. Bilder sind Symbol-/Strukturbilder aus dem Internet und können abweichen.</small></p>
       <button class="btn ghost" style="margin-top:4px" onclick="resetDisclaimer()"><i class="fa-solid fa-rotate-left"></i> Hinweis zurücksetzen</button>
     </div>
+  </section>
+
+  <!-- ============ FREIGABEN (nur Admin) ============ -->
+  <section id="view-freigaben" class="view">
+    <div class="pagetitle">Freigaben</div>
+    <p class="sub" style="margin:0 0 12px">Von Besuchern eingereichte Einträge – prüfen und genehmigen oder ablehnen.</p>
+    <div class="results" id="pendResults"></div>
   </section>
 
 </main>
@@ -1619,6 +1651,7 @@ function openDetail(id,keepScroll){
       <div class="statusbig ${it.ampel}"><div class="ic"><i class="fa-solid ${STATUS_ICON[it.ampel]}"></i></div><div><div class="t1">${it.einstufung||STATUS_TEXT[it.ampel]}</div><div class="t2">Status: ${STATUS_TEXT[it.ampel]}</div></div></div>
       ${legalBlock}${merkBlock}${idBlock}${gefahrBlock}${syn}${galleryHTML}${dateiBlock}${similarHTML(it)}
       ${srcLinks?`<div class="block"><h4><i class="fa-solid fa-book"></i> Quellen</h4>${srcLinks}</div>`:''}
+      ${IS_ADMIN?`<div style="display:flex;gap:8px;margin:4px 0 10px"><button class="btn ghost" style="margin:0;flex:1" onclick="editEntry('${it.id}')"><i class="fa-solid fa-pen"></i> Bearbeiten</button><button class="btn ghost" style="margin:0;flex:1;color:var(--rot);border-color:var(--rot-line)" onclick="deleteEntry('${it.id}')"><i class="fa-solid fa-trash"></i> Löschen</button></div>`:''}
       <div class="mini-disc"><i class="fa-solid fa-triangle-exclamation"></i><div>Vereinfachte Orientierung, <b>keine Rechtsberatung, keine Gewähr</b>. Die Strafbarkeit hängt vom Einzelfall ab (Menge, Erlaubnis, Ort, Alter, Absicht). Maßgeblich sind die amtlichen Quellen. Stand: ${STAND}.</div></div>
     </div>`;
   const m=document.getElementById('modal');
@@ -1643,10 +1676,11 @@ function go(view,el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
   document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.remove('active'));
-  const navMap={start:'nav-start',suche:'nav-start',favoriten:'nav-favoriten',kamera:'nav-kamera',kategorien:'nav-kategorien',profil:'nav-profil'};
+  const navMap={start:'nav-start',suche:'nav-start',favoriten:'nav-favoriten',kamera:'nav-kamera',kategorien:'nav-kategorien',profil:'nav-profil',freigaben:'nav-profil'};
   const navEl=document.getElementById(navMap[view]); if(navEl) navEl.classList.add('active');
   if(view==='favoriten') renderFavoriten();
-  if(view==='profil'){ updateFavSummary(); renderMyImgs(); }
+  if(view==='freigaben') renderPending();
+  if(view==='profil'){ updateFavSummary(); renderMyImgs(); refreshAdminUI(); }
   const sg=document.getElementById('homeSuggest'); if(sg) sg.classList.remove('open');
   window.scrollTo(0,0);
 }
@@ -1655,7 +1689,11 @@ function go(view,el){
    EINTRAG HINZUFÜGEN (erzeugt SQL für Supabase)
    ========================================================================= */
 let addPhotoDataUrl=null;
+let editId=null;
 function openAdd(){
+  editId=null;
+  const h=document.querySelector('#addModal h2'); if(h) h.textContent='Eintrag hinzufügen';
+  ['ad_name','ad_einstufung','ad_wirkstoff','ad_kurz','ad_gesetz','ad_besitz','ad_handel','ad_bild'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
   document.getElementById('addModal').classList.add('open');
   document.getElementById('ad_out').style.display='none';
   addPhotoDataUrl=null;
@@ -1695,7 +1733,7 @@ function buildEntryDoc(){
   const name=adVal('ad_name'); const kat=adVal('ad_kat'); const ampel=adVal('ad_ampel');
   if(!name) return null;
   const slug=name.toLowerCase().replace(/[äöü]/g,m=>({'ä':'ae','ö':'oe','ü':'ue'}[m])).replace(/ß/g,'ss').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-  const id='u-'+(slug||('eintrag-'+Date.now()));
+  const id=editId||('u-'+(slug||('eintrag-'+Date.now())));
   return {
     id:id, kategorie:kat, name:name, ampel:ampel,
     einstufung:adVal('ad_einstufung')||STATUS_TEXT[ampel],
@@ -1715,12 +1753,18 @@ async function saveEntry(){
   if(!c){ setAdStatus('Supabase nicht verfügbar. Nutze unten „SQL kopieren".','err'); buildAddSQL(); return; }
   setAdStatus('Speichere …','work');
   try{
-    const {error}=await c.from('eintraege').upsert({id:doc.id,kategorie:doc.kategorie,name:doc.name,ampel:doc.ampel,doc:doc});
+    const approved = IS_ADMIN || !!editId;   // Admin/Bearbeiten = freigegeben; Besucher = einreichen
+    const {error}=await c.from('eintraege').upsert({id:doc.id,kategorie:doc.kategorie,name:doc.name,ampel:doc.ampel,doc:doc,approved:approved});
     if(error) throw error;
-    const idx=DATA.findIndex(d=>d.id===doc.id); if(idx>=0) DATA[idx]=doc; else DATA.push(doc);
-    enrichLegal(); renderCats(); render(); renderFavoriten();
-    setAdStatus('✓ Gespeichert! Der Eintrag ist jetzt in der Datenbank.','');
-    setTimeout(()=>{ closeAdd(); openDetail(doc.id); }, 800);
+    if(approved){
+      const idx=DATA.findIndex(d=>d.id===doc.id); if(idx>=0) DATA[idx]=doc; else DATA.push(doc);
+      enrichLegal(); renderCats(); render(); renderFavoriten();
+      setAdStatus('✓ Gespeichert.','');
+      setTimeout(()=>{ closeAdd(); openDetail(doc.id); }, 700);
+    } else {
+      setAdStatus('✓ Danke! Dein Eintrag wurde eingereicht und erscheint nach Prüfung durch den Admin.','');
+      setTimeout(()=>{ closeAdd(); }, 1600);
+    }
   }catch(err){
     const m=(err&&err.message)||String(err);
     setAdStatus('Speichern fehlgeschlagen: '+m,'err');
@@ -1741,6 +1785,28 @@ async function copyAddSQL(){
   const t=document.getElementById('ad_sql').value;
   try{ await navigator.clipboard.writeText(t); document.getElementById('ad_status').textContent='✓ Kopiert. Jetzt in Supabase → SQL Editor einfügen & Run, dann Seite neu laden.'; }
   catch(e){ const el=document.getElementById('ad_sql'); el.focus(); el.select(); document.getElementById('ad_status').textContent='Bitte manuell kopieren (Text ist markiert).'; }
+}
+/* Bearbeiten/Löschen (nur Admin) */
+function editEntry(id){
+  const it=DATA.find(d=>d.id===id); if(!it) return;
+  closeDetail(); openAdd();
+  editId=it.id;
+  const h=document.querySelector('#addModal h2'); if(h) h.textContent='Eintrag bearbeiten';
+  const set=(f,v)=>{const el=document.getElementById(f); if(el) el.value=v||'';};
+  set('ad_name',it.name); set('ad_kat',it.kategorie); set('ad_einstufung',it.einstufung);
+  set('ad_wirkstoff',it.wirkstoff); set('ad_kurz',it.kurz); set('ad_gesetz',it.gesetz);
+  set('ad_besitz',(it.folgenBesitz||'').replace(/^Besitz\/Erwerb:\s*/,'')); set('ad_handel',(it.folgenHandel||'').replace(/^Handel\/(Führen|Abgabe):\s*/,''));
+  if(it.bild && !/^data:/.test(it.bild)) set('ad_bild',it.bild);
+  pickAmpel(it.ampel, document.querySelector('#ad_ampelsel button[data-v="'+it.ampel+'"]'));
+}
+async function deleteEntry(id){
+  const it=DATA.find(d=>d.id===id);
+  if(!confirm('Eintrag „'+((it&&it.name)||id)+'" wirklich löschen?')) return;
+  const c=supa(); if(!c){ alert('Supabase nicht verfügbar.'); return; }
+  try{ const {error}=await c.from('eintraege').delete().eq('id',id); if(error) throw error;
+    const i=DATA.findIndex(d=>d.id===id); if(i>=0) DATA.splice(i,1);
+    closeDetail(); render(); renderCats(); renderFavoriten(); updateDataSourceLabel();
+  }catch(e){ alert('Löschen fehlgeschlagen: '+((e&&e.message)||e)); }
 }
 
 /* =========================================================================
@@ -1951,25 +2017,117 @@ function supa(){
 async function loadFromSupabase(){
   const client=supa(); if(!client) return;                   // nicht konfiguriert -> Fallback
   try{
-    const PAGE=1000; let from=0; const rows=[];
+    const PAGE=1000; let from=0; const all=[];
     while(true){
-      const {data,error}=await client.from('eintraege').select('doc').range(from, from+PAGE-1);
+      const {data,error}=await client.from('eintraege').select('doc,approved').range(from, from+PAGE-1);
       if(error) throw error;
       if(!data || !data.length) break;
-      data.forEach(r=>{ if(r && r.doc) rows.push(r.doc); });
+      data.forEach(r=>{ if(r && r.doc) all.push(r); });
       if(data.length < PAGE) break;
       from += PAGE;
     }
-    if(rows.length){
-      DATA.length=0; rows.forEach(d=>DATA.push(d));
-      enrichLegal();   // Rechts-Differenzierung (Waffen/BtM) auch auf DB-Daten anwenden
+    if(all.length){
+      const approved=all.filter(r=>r.approved!==false).map(r=>r.doc);
+      PENDING=all.filter(r=>r.approved===false).map(r=>r.doc);
+      DATA.length=0; approved.forEach(d=>DATA.push(d));
+      enrichLegal();
       DATA_SOURCE='Supabase';
-      renderCats(); render(); renderFavoriten(); updateFavSummary(); updateDataSourceLabel();
-      console.log('Supabase: '+rows.length+' Einträge geladen.');
+      try{ localStorage.setItem('ra_datacache', JSON.stringify(approved)); }catch(e){}
+      renderCats(); render(); renderFavoriten(); updateFavSummary(); updateDataSourceLabel(); renderPending(); refreshAdminUI();
+      console.log('Supabase: '+approved.length+' freigegeben, '+PENDING.length+' offen.');
     }
   }catch(err){
-    console.warn('Supabase-Laden fehlgeschlagen, nutze eingebettete Daten:', err.message||err);
+    console.warn('Supabase-Laden fehlgeschlagen, nutze eingebettete/zwischengespeicherte Daten:', err.message||err);
   }
+}
+
+/* =========================================================================
+   ADMIN-LOGIN + MODERATION (Freigaben)
+   ========================================================================= */
+let IS_ADMIN=false, PENDING=[];
+async function checkAdmin(){
+  const c=supa(); if(!c||!c.auth) return;
+  try{ const {data}=await c.auth.getSession(); IS_ADMIN=!!(data&&data.session); refreshAdminUI(); }catch(e){}
+}
+function refreshAdminUI(){
+  const out=document.getElementById('adminLoggedOut'), inn=document.getElementById('adminLoggedIn');
+  if(out&&inn){ out.style.display=IS_ADMIN?'none':'block'; inn.style.display=IS_ADMIN?'block':'none'; }
+  const pc=document.getElementById('pendCount'); if(pc) pc.textContent=PENDING.length?('('+PENDING.length+')'):'';
+}
+async function adminLogin(){
+  const c=supa(); if(!c){ document.getElementById('adminMsg').textContent='Supabase nicht verfügbar.'; return; }
+  const email=document.getElementById('adminEmail').value.trim(), pass=document.getElementById('adminPass').value;
+  const msg=document.getElementById('adminMsg'); msg.textContent='Anmelden …';
+  try{
+    const {data,error}=await c.auth.signInWithPassword({email,password:pass});
+    if(error) throw error;
+    IS_ADMIN=true; const who=document.getElementById('adminWho'); if(who) who.textContent=(data.user&&data.user.email)||email;
+    msg.textContent=''; document.getElementById('adminPass').value='';
+    refreshAdminUI(); await loadFromSupabase();
+  }catch(e){ msg.textContent='Login fehlgeschlagen: '+((e&&e.message)||e); }
+}
+async function adminLogout(){
+  const c=supa(); if(c&&c.auth){ try{ await c.auth.signOut(); }catch(e){} }
+  IS_ADMIN=false; PENDING=[]; refreshAdminUI(); await loadFromSupabase();
+  go('start', document.getElementById('nav-start'));
+}
+function renderPending(){
+  const box=document.getElementById('pendResults'); if(!box) return;
+  if(!PENDING.length){ box.innerHTML='<div class="empty"><i class="fa-solid fa-clipboard-check"></i>Keine offenen Einreichungen.</div>'; return; }
+  box.innerHTML=PENDING.map(it=>{
+    const fb=svgTile(it).replace(/"/g,'&quot;');
+    return `<div class="card"><div class="thumb"><img src="${mainImg(it)}" onerror="this.onerror=null;this.src='${fb}'"></div>
+      <div class="body"><div class="cat">${CAT_INFO[it.kategorie]?CAT_INFO[it.kategorie].label:''}</div><h3>${escapeHtml(it.name)}</h3><div class="desc">${escapeHtml(shortDesc(it))}</div></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn primary" style="width:auto;padding:8px 10px;font-size:12px" onclick="approveEntry('${it.id}')"><i class="fa-solid fa-check"></i></button>
+        <button class="btn ghost" style="width:auto;padding:8px 10px;font-size:12px;margin:0" onclick="rejectEntry('${it.id}')"><i class="fa-solid fa-xmark"></i></button>
+      </div></div>`;
+  }).join('');
+}
+async function approveEntry(id){
+  const c=supa(); if(!c) return;
+  try{ const {error}=await c.from('eintraege').update({approved:true}).eq('id',id); if(error) throw error;
+    const it=PENDING.find(d=>d.id===id); PENDING=PENDING.filter(d=>d.id!==id);
+    if(it){ const idx=DATA.findIndex(d=>d.id===it.id); if(idx>=0)DATA[idx]=it; else DATA.push(it); enrichLegal(); }
+    renderPending(); refreshAdminUI(); render(); renderCats();
+  }catch(e){ alert('Genehmigen fehlgeschlagen: '+((e&&e.message)||e)); }
+}
+async function rejectEntry(id){
+  if(!confirm('Diese Einreichung ablehnen und löschen?')) return;
+  const c=supa(); if(!c) return;
+  try{ const {error}=await c.from('eintraege').delete().eq('id',id); if(error) throw error;
+    PENDING=PENDING.filter(d=>d.id!==id); renderPending(); refreshAdminUI();
+  }catch(e){ alert('Ablehnen fehlgeschlagen: '+((e&&e.message)||e)); }
+}
+
+/* =========================================================================
+   BACKUP (Export / Import)
+   ========================================================================= */
+function exportBackup(){
+  const blob=new Blob([JSON.stringify(DATA,null,1)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='datenbank-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  const m=document.getElementById('backupMsg'); if(m){ m.className='ai-status'; m.textContent='✓ '+DATA.length+' Einträge exportiert.'; }
+}
+async function importBackup(ev){
+  const f=ev.target.files&&ev.target.files[0]; if(!f) return;
+  const m=document.getElementById('backupMsg');
+  try{
+    const arr=JSON.parse(await f.text());
+    if(!Array.isArray(arr)) throw new Error('Falsches Format');
+    if(IS_ADMIN && supa()){
+      m.className='ai-status work'; m.textContent='Importiere '+arr.length+' Einträge …';
+      for(const d of arr){ if(d&&d.id) await supa().from('eintraege').upsert({id:d.id,kategorie:d.kategorie,name:d.name,ampel:d.ampel,doc:d,approved:true}); }
+      await loadFromSupabase();
+      m.className='ai-status'; m.textContent='✓ '+arr.length+' Einträge importiert (in Datenbank).';
+    } else {
+      arr.forEach(d=>{ if(d&&d.id && !DATA.find(x=>x.id===d.id)) DATA.push(d); });
+      enrichLegal(); render(); renderCats(); updateDataSourceLabel();
+      m.className='ai-status'; m.textContent='✓ '+arr.length+' Einträge lokal geladen (als Admin anmelden, um sie dauerhaft zu speichern).';
+    }
+  }catch(e){ m.className='ai-status err'; m.textContent='Import fehlgeschlagen: '+((e&&e.message)||e); }
+  ev.target.value='';
 }
 
 /* =========================================================================
@@ -2044,11 +2202,14 @@ function init(){
   onKeyProviderChange();
   const k=getKey(); if(k){ document.getElementById('apiKey').value=k; document.getElementById('keyState').textContent='Gespeichert ✓ ('+(getKeyProvider()==='gemini'?'Gemini':'Claude')+')'; }
   addMedikamente();
+  // Offline: zuletzt geladene Daten anzeigen, bis Supabase antwortet
+  try{ const cache=JSON.parse(localStorage.getItem('ra_datacache')||'null'); if(Array.isArray(cache)&&cache.length){ DATA.length=0; cache.forEach(d=>DATA.push(d)); DATA_SOURCE='zuletzt geladen (offline)'; } }catch(e){}
   enrichLegal();
   renderCats(); renderSources(); fillUploadEntries(); renderMyImgs(); updateFavSummary(); updateDataSourceLabel();
   ['standHome','standProfil'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=STAND; });
   setProvider(getProvider()); render();
-  loadFromSupabase();   // im Hintergrund; ersetzt Daten, wenn Supabase konfiguriert ist
+  checkAdmin();         // Admin-Session prüfen
+  loadFromSupabase();   // im Hintergrund; ersetzt Daten, wenn Supabase erreichbar
   // Schließe Vorschläge bei Klick außerhalb
   document.addEventListener('click',e=>{ const sb=document.querySelector('#view-start .searchbar'); if(sb&&!sb.contains(e.target)) document.getElementById('homeSuggest').classList.remove('open'); });
   // Splash
