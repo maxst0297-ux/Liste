@@ -355,6 +355,25 @@
   .ampelsel button.on[data-v="rot"]{border-color:var(--rot);background:var(--rot-bg);color:var(--rot)}
   .ampelsel button.on[data-v="gelb"]{border-color:var(--gelb);background:var(--gelb-bg);color:var(--gelb)}
   .ampelsel button.on[data-v="gruen"]{border-color:var(--gruen);background:var(--gruen-bg);color:var(--gruen)}
+
+  /* Toasts (Sonner-Prinzip: Transitions statt Keyframes, leicht elegantes ease) */
+  #toasts{position:fixed;left:0;right:0;bottom:calc(86px + env(safe-area-inset-bottom));z-index:120;display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 16px;pointer-events:none}
+  .toast{background:var(--primary);color:#fff;padding:11px 16px;border-radius:13px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow-lg);max-width:92%;display:flex;gap:9px;align-items:center;
+    transform:translateY(14px) scale(.96);opacity:0;transition:transform .32s ease,opacity .32s ease}
+  .toast.show{transform:none;opacity:1}
+  .toast.err{background:var(--rot)} .toast.ok{background:var(--gruen)}
+  html[data-theme="dark"] .toast{background:#334155}
+  html[data-theme="dark"] .toast.err{background:#b91c1c} html[data-theme="dark"] .toast.ok{background:#15803d}
+  /* Chat-Nachrichten gleiten ein */
+  .bmsg{animation:bmsgIn .26s var(--ease-out) both}
+  @keyframes bmsgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  /* Lightbox-Öffnen mit feinem Scale/Fade */
+  .lightbox img{transform:scale(.94);opacity:0;transition:transform .28s var(--ease-out),opacity .28s var(--ease-out)}
+  .lightbox.open img{transform:none;opacity:1}
+  /* Dezenter Stagger beim Öffnen einer Kategorie/Ansicht */
+  .results.stagger .card{animation:cardIn .34s var(--ease-out) both}
+  @keyframes cardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .results.stagger .card:nth-child(1){animation-delay:0ms}.results.stagger .card:nth-child(2){animation-delay:45ms}.results.stagger .card:nth-child(3){animation-delay:90ms}.results.stagger .card:nth-child(4){animation-delay:135ms}.results.stagger .card:nth-child(5){animation-delay:180ms}.results.stagger .card:nth-child(6){animation-delay:215ms}.results.stagger .card:nth-child(n+7){animation-delay:240ms}
 </style>
 </head>
 <body>
@@ -758,11 +777,12 @@ Verantwortlich: siehe Impressum. Du hast das Recht auf Auskunft, Berichtigung un
 
 <nav class="bottom">
   <button id="nav-start" class="active" onclick="go('start',this)"><i class="fa-solid fa-house"></i>Start</button>
-  <button id="nav-favoriten" onclick="go('favoriten',this)"><i class="fa-solid fa-star"></i>Favoriten</button>
-  <button id="nav-kamera" onclick="go('kamera',this)"><i class="fa-solid fa-camera"></i>Kamera</button>
+  <button id="nav-favoriten" onclick="go('favoriten',this)"><i class="fa-solid fa-star"></i>Favoriten</button>  <button id="nav-kamera" onclick="go('kamera',this)"><i class="fa-solid fa-camera"></i>Kamera</button>
   <button id="nav-kategorien" onclick="go('kategorien',this)"><i class="fa-solid fa-folder-open"></i>Kategorien</button>
   <button id="nav-profil" onclick="go('profil',this)"><i class="fa-solid fa-user"></i>Profil</button>
 </nav>
+
+<div id="toasts" aria-live="polite"></div>
 
 <script>
 /* =========================================================================
@@ -1670,7 +1690,7 @@ function openKategorie(cat){
   const s=document.getElementById('search'); if(s) s.value='';
   document.getElementById('sucheTitle').textContent=CAT_INFO[cat].label;
   go('suche',document.getElementById('nav-start'));
-  render();
+  render(); staggerOnce();
 }
 
 /* =========================================================================
@@ -1881,10 +1901,10 @@ async function saveEntry(){
     if(approved){
       const idx=DATA.findIndex(d=>d.id===doc.id); if(idx>=0) DATA[idx]=doc; else DATA.push(doc);
       enrichLegal(); renderCats(); render(); renderFavoriten();
-      setAdStatus('✓ Gespeichert.','');
+      setAdStatus('✓ Gespeichert.',''); toast(editId?'Eintrag aktualisiert':'Eintrag gespeichert','ok');
       setTimeout(()=>{ closeAdd(); openDetail(doc.id); }, 700);
     } else {
-      setAdStatus('✓ Danke! Dein Eintrag wurde eingereicht und erscheint nach Prüfung durch den Admin.','');
+      setAdStatus('✓ Danke! Dein Eintrag wurde eingereicht und erscheint nach Prüfung durch den Admin.',''); toast('Eingereicht – wird vom Admin geprüft','ok');
       setTimeout(()=>{ closeAdd(); }, 1600);
     }
   }catch(err){
@@ -1927,8 +1947,8 @@ async function deleteEntry(id){
   const c=supa(); if(!c){ alert('Supabase nicht verfügbar.'); return; }
   try{ const {error}=await c.from('eintraege').delete().eq('id',id); if(error) throw error;
     const i=DATA.findIndex(d=>d.id===id); if(i>=0) DATA.splice(i,1);
-    closeDetail(); render(); renderCats(); renderFavoriten(); updateDataSourceLabel();
-  }catch(e){ alert('Löschen fehlgeschlagen: '+((e&&e.message)||e)); }
+    closeDetail(); render(); renderCats(); renderFavoriten(); updateDataSourceLabel(); toast('Eintrag gelöscht');
+  }catch(e){ toast('Löschen fehlgeschlagen','err'); }
 }
 
 /* =========================================================================
@@ -2108,7 +2128,7 @@ async function saveUploadAssign(){
       if(error) throw error;
       const idx=DATA.findIndex(d=>d.id===doc.id); if(idx>=0) DATA[idx]=doc; else DATA.push(doc);
       enrichLegal(); render(); renderCats(); resetForm();
-      setUpStatus('✓ Foto gesetzt – ist jetzt für alle sichtbar.','');
+      setUpStatus('✓ Foto gesetzt – ist jetzt für alle sichtbar.',''); toast('Foto gesetzt – für alle sichtbar','ok');
     }catch(e){ setUpStatus('Fehler: '+((e&&e.message)||e),'err'); }
     return;
   }
@@ -2118,7 +2138,7 @@ async function saveUploadAssign(){
       const {error}=await c.from('foto_vorschlaege').insert({entry_id:it.id,entry_name:it.name,bild:photo,approved:false});
       if(error) throw error;
       resetForm();
-      setUpStatus('✓ Danke! Dein Foto für „'+it.name+'“ wurde eingereicht und erscheint nach Freigabe durch den Admin.','');
+      setUpStatus('✓ Danke! Dein Foto für „'+it.name+'“ wurde eingereicht und erscheint nach Freigabe durch den Admin.',''); toast('Foto eingereicht – wartet auf Freigabe','ok');
     }catch(e){ setUpStatus('Einreichen fehlgeschlagen: '+((e&&e.message)||e),'err'); }
     return;
   }
@@ -2207,7 +2227,7 @@ async function adminLogin(){
     if(error) throw error;
     IS_ADMIN=true; const who=document.getElementById('adminWho'); if(who) who.textContent=(data.user&&data.user.email)||email;
     msg.textContent=''; document.getElementById('adminPass').value='';
-    refreshAdminUI(); await loadFromSupabase();
+    refreshAdminUI(); await loadFromSupabase(); toast('Als Admin angemeldet','ok');
   }catch(e){ msg.textContent='Login fehlgeschlagen: '+((e&&e.message)||e); }
 }
 async function adminLogout(){
@@ -2253,29 +2273,29 @@ async function approveFoto(fid){
     }
     await c.from('foto_vorschlaege').delete().eq('id',fid);
     PENDING_FOTOS=PENDING_FOTOS.filter(x=>x.id!==fid);
-    renderPending(); refreshAdminUI(); render(); renderCats();
-  }catch(e){ alert('Foto-Freigabe fehlgeschlagen: '+((e&&e.message)||e)); }
+    renderPending(); refreshAdminUI(); render(); renderCats(); toast('Foto freigegeben','ok');
+  }catch(e){ toast('Foto-Freigabe fehlgeschlagen','err'); }
 }
 async function rejectFoto(fid){
   if(!confirm('Diesen Foto-Vorschlag ablehnen?')) return;
   const c=supa(); if(!c) return;
-  try{ await c.from('foto_vorschlaege').delete().eq('id',fid); PENDING_FOTOS=PENDING_FOTOS.filter(x=>x.id!==fid); renderPending(); refreshAdminUI(); }
-  catch(e){ alert('Ablehnen fehlgeschlagen: '+((e&&e.message)||e)); }
+  try{ await c.from('foto_vorschlaege').delete().eq('id',fid); PENDING_FOTOS=PENDING_FOTOS.filter(x=>x.id!==fid); renderPending(); refreshAdminUI(); toast('Foto-Vorschlag abgelehnt'); }
+  catch(e){ toast('Ablehnen fehlgeschlagen','err'); }
 }
 async function approveEntry(id){
   const c=supa(); if(!c) return;
   try{ const {error}=await c.from('eintraege').update({approved:true}).eq('id',id); if(error) throw error;
     const it=PENDING.find(d=>d.id===id); PENDING=PENDING.filter(d=>d.id!==id);
     if(it){ const idx=DATA.findIndex(d=>d.id===it.id); if(idx>=0)DATA[idx]=it; else DATA.push(it); enrichLegal(); }
-    renderPending(); refreshAdminUI(); render(); renderCats();
-  }catch(e){ alert('Genehmigen fehlgeschlagen: '+((e&&e.message)||e)); }
+    renderPending(); refreshAdminUI(); render(); renderCats(); toast('Eintrag freigegeben','ok');
+  }catch(e){ toast('Genehmigen fehlgeschlagen','err'); }
 }
 async function rejectEntry(id){
   if(!confirm('Diese Einreichung ablehnen und löschen?')) return;
   const c=supa(); if(!c) return;
   try{ const {error}=await c.from('eintraege').delete().eq('id',id); if(error) throw error;
-    PENDING=PENDING.filter(d=>d.id!==id); renderPending(); refreshAdminUI();
-  }catch(e){ alert('Ablehnen fehlgeschlagen: '+((e&&e.message)||e)); }
+    PENDING=PENDING.filter(d=>d.id!==id); renderPending(); refreshAdminUI(); toast('Einreichung abgelehnt');
+  }catch(e){ toast('Ablehnen fehlgeschlagen','err'); }
 }
 
 /* =========================================================================
@@ -2287,6 +2307,7 @@ function exportBackup(){
   a.download='datenbank-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),2000);
   const m=document.getElementById('backupMsg'); if(m){ m.className='ai-status'; m.textContent='✓ '+DATA.length+' Einträge exportiert.'; }
+  toast(DATA.length+' Einträge exportiert','ok');
 }
 async function importBackup(ev){
   const f=ev.target.files&&ev.target.files[0]; if(!f) return;
@@ -2313,6 +2334,27 @@ async function importBackup(ev){
    ========================================================================= */
 const BOT_STOP=new Set('ist sind war ein eine einen einem einer der die das den dem des was welche welcher welches wie wo wann warum wieso mit und oder von vom für fuer ich du wir man kann darf muss soll hat habe finde suche zeig zeige zeigen mir bitte mal denn auch noch im in an auf zum zur als bei aus nach ueber über unter gibt es eigentlich nicht nur etwas eine'.split(' '));
 function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+/* Toast-Benachrichtigung (Transition-basiert; Timer pausiert bei verstecktem Tab) */
+function toast(msg,type){
+  const c=document.getElementById('toasts'); if(!c) return;
+  const t=document.createElement('div'); t.className='toast '+(type||'');
+  const ic=type==='err'?'fa-circle-exclamation':(type==='ok'?'fa-circle-check':'fa-circle-info');
+  t.innerHTML='<i class="fa-solid '+ic+'"></i><span>'+escapeHtml(msg)+'</span>';
+  c.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  let left=3200, start=Date.now(), timer;
+  const close=()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),320); };
+  const run=()=>{ timer=setTimeout(close,left); start=Date.now(); };
+  const onVis=()=>{ if(document.hidden){ clearTimeout(timer); left-=Date.now()-start; } else run(); };
+  document.addEventListener('visibilitychange',onVis);
+  run();
+}
+let staggerTimer=null;
+function staggerOnce(){
+  const box=document.getElementById('results'); if(!box) return;
+  box.classList.add('stagger'); clearTimeout(staggerTimer);
+  staggerTimer=setTimeout(()=>box.classList.remove('stagger'),700);
+}
 function botSearch(query){
   const nq=norm(query);
   const toks=query.toLowerCase().split(/[^a-zäöüß0-9]+/).filter(w=>w.length>=3 && !BOT_STOP.has(w));
