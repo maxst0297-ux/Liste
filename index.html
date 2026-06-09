@@ -528,7 +528,7 @@
 
     <div class="panel">
       <h3><i class="fa-solid fa-upload"></i> Eigenes Foto zuordnen</h3>
-      <div class="warnbox"><i class="fa-solid fa-circle-exclamation"></i><div><b>Nur zu 100 % sichere Fotos verwenden!</b> Falsche Zuordnungen können zu gefährlichen Fehleinschätzungen führen. Fotos werden nur lokal gespeichert.</div></div>
+      <div class="warnbox"><i class="fa-solid fa-circle-exclamation"></i><div><b>Nur zu 100 % sichere Fotos verwenden!</b> Falsche Zuordnungen können zu gefährlichen Fehleinschätzungen führen. Dein Foto wird <b>eingereicht</b> und erscheint nach <b>Freigabe durch den Admin</b> für alle.</div></div>
       <img id="upPrev" class="uploadprev" alt="Vorschau" />
       <input id="upInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="onUploadPick(event)" />
       <input id="upInputGallery" type="file" accept="image/*" style="display:none" onchange="onUploadPick(event)" />
@@ -2093,20 +2093,39 @@ function fillUploadEntries(){
   const cat=catSel.value||'btm';
   document.getElementById('upEntry').innerHTML=DATA.filter(d=>d.kategorie===cat).map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
 }
-function saveUploadAssign(){
+async function saveUploadAssign(){
   if(!uploadDataUrl){ setUpStatus('Bitte zuerst ein Foto auswählen.','err'); return; }
   const id=document.getElementById('upEntry').value; const it=DATA.find(d=>d.id===id);
   if(!it){ setUpStatus('Bitte einen Eintrag wählen.','err'); return; }
   if(!confirm('Bist du dir 100% sicher, dass dieses Foto „'+it.name+'“ zeigt?\n\nNur sichere Fotos zuordnen.')) return;
-  const o=getUserImgs(); if(!Array.isArray(o[id])) o[id]=[]; o[id].push(uploadDataUrl);
-  if(!saveUserImgs(o)){
-    o[id].pop();   // fehlgeschlagenes Foto wieder entfernen
-    setUpStatus('Speicher voll – Foto konnte nicht gespeichert werden. Lösche unter „Meine zugeordneten Fotos" ältere Bilder und versuche es erneut.','err');
+  const c=supa(); const photo=uploadDataUrl;
+  const resetForm=()=>{ uploadDataUrl=null; document.getElementById('upPrev').style.display='none'; document.getElementById('upInput').value=''; const g=document.getElementById('upInputGallery'); if(g) g.value=''; };
+  if(c && IS_ADMIN){
+    setUpStatus('Speichere …','work');
+    try{
+      const doc=Object.assign({}, it, {bild:photo});
+      const {error}=await c.from('eintraege').upsert({id:doc.id,kategorie:doc.kategorie,name:doc.name,ampel:doc.ampel,doc:doc,approved:true});
+      if(error) throw error;
+      const idx=DATA.findIndex(d=>d.id===doc.id); if(idx>=0) DATA[idx]=doc; else DATA.push(doc);
+      enrichLegal(); render(); renderCats(); resetForm();
+      setUpStatus('✓ Foto gesetzt – ist jetzt für alle sichtbar.','');
+    }catch(e){ setUpStatus('Fehler: '+((e&&e.message)||e),'err'); }
     return;
   }
-  uploadDataUrl=null; document.getElementById('upPrev').style.display='none';
-  document.getElementById('upInput').value=''; const g=document.getElementById('upInputGallery'); if(g) g.value='';
-  setUpStatus('✓ Foto „'+it.name+'“ zugeordnet.',''); renderMyImgs(); render();
+  if(c){
+    setUpStatus('Sende …','work');
+    try{
+      const {error}=await c.from('foto_vorschlaege').insert({entry_id:it.id,entry_name:it.name,bild:photo,approved:false});
+      if(error) throw error;
+      resetForm();
+      setUpStatus('✓ Danke! Dein Foto für „'+it.name+'“ wurde eingereicht und erscheint nach Freigabe durch den Admin.','');
+    }catch(e){ setUpStatus('Einreichen fehlgeschlagen: '+((e&&e.message)||e),'err'); }
+    return;
+  }
+  // Kein Supabase -> lokal (nur dieses Gerät)
+  const o=getUserImgs(); if(!Array.isArray(o[id])) o[id]=[]; o[id].push(photo);
+  if(!saveUserImgs(o)){ o[id].pop(); setUpStatus('Speicher voll – Foto konnte nicht gespeichert werden.','err'); return; }
+  resetForm(); setUpStatus('✓ Foto „'+it.name+'“ lokal zugeordnet (nur auf diesem Gerät).',''); render();
 }
 function delUserImg(id,idx){ const o=getUserImgs(); if(Array.isArray(o[id])){ o[id].splice(idx,1); if(!o[id].length) delete o[id]; saveUserImgs(o);} renderMyImgs(); render(); }
 function renderMyImgs(){
@@ -2157,6 +2176,8 @@ async function loadFromSupabase(){
       try{ localStorage.setItem('ra_datacache', JSON.stringify(approved)); }catch(e){}
       renderCats(); render(); renderFavoriten(); updateFavSummary(); updateDataSourceLabel(); renderPending(); refreshAdminUI();
       console.log('Supabase: '+approved.length+' freigegeben, '+PENDING.length+' offen.');
+      // Foto-Vorschläge (nur für Admin sichtbar/abrufbar)
+      try{ const {data:fd}=await client.from('foto_vorschlaege').select('*').eq('approved',false); PENDING_FOTOS=Array.isArray(fd)?fd:[]; renderPending(); refreshAdminUI(); }catch(e){ PENDING_FOTOS=[]; }
     }
   }catch(err){
     console.warn('Supabase-Laden fehlgeschlagen, nutze eingebettete/zwischengespeicherte Daten:', err.message||err);
@@ -2166,7 +2187,7 @@ async function loadFromSupabase(){
 /* =========================================================================
    ADMIN-LOGIN + MODERATION (Freigaben)
    ========================================================================= */
-let IS_ADMIN=false, PENDING=[];
+let IS_ADMIN=false, PENDING=[], PENDING_FOTOS=[];
 async function checkAdmin(){
   const c=supa(); if(!c||!c.auth) return;
   try{ const {data}=await c.auth.getSession(); IS_ADMIN=!!(data&&data.session); refreshAdminUI(); }catch(e){}
@@ -2174,7 +2195,8 @@ async function checkAdmin(){
 function refreshAdminUI(){
   const out=document.getElementById('adminLoggedOut'), inn=document.getElementById('adminLoggedIn');
   if(out&&inn){ out.style.display=IS_ADMIN?'none':'block'; inn.style.display=IS_ADMIN?'block':'none'; }
-  const pc=document.getElementById('pendCount'); if(pc) pc.textContent=PENDING.length?('('+PENDING.length+')'):'';
+  const n=PENDING.length+PENDING_FOTOS.length;
+  const pc=document.getElementById('pendCount'); if(pc) pc.textContent=n?('('+n+')'):'';
 }
 async function adminLogin(){
   const c=supa(); if(!c){ document.getElementById('adminMsg').textContent='Supabase nicht verfügbar.'; return; }
@@ -2190,21 +2212,55 @@ async function adminLogin(){
 }
 async function adminLogout(){
   const c=supa(); if(c&&c.auth){ try{ await c.auth.signOut(); }catch(e){} }
-  IS_ADMIN=false; PENDING=[]; refreshAdminUI(); await loadFromSupabase();
+  IS_ADMIN=false; PENDING=[]; PENDING_FOTOS=[]; refreshAdminUI(); await loadFromSupabase();
   go('start', document.getElementById('nav-start'));
 }
 function renderPending(){
   const box=document.getElementById('pendResults'); if(!box) return;
-  if(!PENDING.length){ box.innerHTML='<div class="empty"><i class="fa-solid fa-clipboard-check"></i>Keine offenen Einreichungen.</div>'; return; }
-  box.innerHTML=PENDING.map(it=>{
-    const fb=svgTile(it).replace(/"/g,'&quot;');
-    return `<div class="card"><div class="thumb"><img src="${mainImg(it)}" onerror="this.onerror=null;this.src='${fb}'"></div>
-      <div class="body"><div class="cat">${CAT_INFO[it.kategorie]?CAT_INFO[it.kategorie].label:''}</div><h3>${escapeHtml(it.name)}</h3><div class="desc">${escapeHtml(shortDesc(it))}</div></div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <button class="btn primary" style="width:auto;padding:8px 10px;font-size:12px" onclick="approveEntry('${it.id}')"><i class="fa-solid fa-check"></i></button>
-        <button class="btn ghost" style="width:auto;padding:8px 10px;font-size:12px;margin:0" onclick="rejectEntry('${it.id}')"><i class="fa-solid fa-xmark"></i></button>
-      </div></div>`;
-  }).join('');
+  if(!PENDING.length && !PENDING_FOTOS.length){ box.innerHTML='<div class="empty"><i class="fa-solid fa-clipboard-check"></i>Keine offenen Einreichungen.</div>'; return; }
+  let html='';
+  if(PENDING.length){
+    html+='<div class="sectiontitle">Neue Einträge</div>'+PENDING.map(it=>{
+      const fb=svgTile(it).replace(/"/g,'&quot;');
+      return `<div class="card"><div class="thumb"><img src="${mainImg(it)}" onerror="this.onerror=null;this.src='${fb}'"></div>
+        <div class="body"><div class="cat">${CAT_INFO[it.kategorie]?CAT_INFO[it.kategorie].label:''}</div><h3>${escapeHtml(it.name)}</h3><div class="desc">${escapeHtml(shortDesc(it))}</div></div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="btn primary" style="width:auto;padding:8px 10px;font-size:12px" onclick="approveEntry('${it.id}')"><i class="fa-solid fa-check"></i></button>
+          <button class="btn ghost" style="width:auto;padding:8px 10px;font-size:12px;margin:0" onclick="rejectEntry('${it.id}')"><i class="fa-solid fa-xmark"></i></button>
+        </div></div>`;
+    }).join('');
+  }
+  if(PENDING_FOTOS.length){
+    html+='<div class="sectiontitle">Foto-Vorschläge</div>'+PENDING_FOTOS.map(f=>{
+      return `<div class="card"><div class="thumb"><img src="${f.bild}" alt=""></div>
+        <div class="body"><div class="cat">Foto für</div><h3>${escapeHtml(f.entry_name||f.entry_id)}</h3><div class="desc">Eingereichtes Foto prüfen</div></div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="btn primary" style="width:auto;padding:8px 10px;font-size:12px" onclick="approveFoto(${f.id})"><i class="fa-solid fa-check"></i></button>
+          <button class="btn ghost" style="width:auto;padding:8px 10px;font-size:12px;margin:0" onclick="rejectFoto(${f.id})"><i class="fa-solid fa-xmark"></i></button>
+        </div></div>`;
+    }).join('');
+  }
+  box.innerHTML=html;
+}
+async function approveFoto(fid){
+  const c=supa(); if(!c) return;
+  const f=PENDING_FOTOS.find(x=>x.id===fid); if(!f) return;
+  try{
+    const it=DATA.find(d=>d.id===f.entry_id);
+    if(it){ const doc=Object.assign({}, it, {bild:f.bild});
+      const {error}=await c.from('eintraege').upsert({id:doc.id,kategorie:doc.kategorie,name:doc.name,ampel:doc.ampel,doc:doc,approved:true}); if(error) throw error;
+      const idx=DATA.findIndex(d=>d.id===doc.id); if(idx>=0) DATA[idx]=doc; enrichLegal();
+    }
+    await c.from('foto_vorschlaege').delete().eq('id',fid);
+    PENDING_FOTOS=PENDING_FOTOS.filter(x=>x.id!==fid);
+    renderPending(); refreshAdminUI(); render(); renderCats();
+  }catch(e){ alert('Foto-Freigabe fehlgeschlagen: '+((e&&e.message)||e)); }
+}
+async function rejectFoto(fid){
+  if(!confirm('Diesen Foto-Vorschlag ablehnen?')) return;
+  const c=supa(); if(!c) return;
+  try{ await c.from('foto_vorschlaege').delete().eq('id',fid); PENDING_FOTOS=PENDING_FOTOS.filter(x=>x.id!==fid); renderPending(); refreshAdminUI(); }
+  catch(e){ alert('Ablehnen fehlgeschlagen: '+((e&&e.message)||e)); }
 }
 async function approveEntry(id){
   const c=supa(); if(!c) return;
