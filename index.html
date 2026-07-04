@@ -425,6 +425,9 @@
     <div class="sectiontitle">Kategorien</div>
     <div class="catcards" id="homeCats"></div>
 
+    <div class="sectiontitle" id="histTitle" style="display:none">Zuletzt angesehen</div>
+    <div class="results" id="histResults"></div>
+
     <div class="mini-disc" style="margin-top:18px">
       <i class="fa-solid fa-triangle-exclamation"></i>
       <div><b>Keine Rechtsberatung.</b> Diese App gibt nur eine grobe Orientierung und ersetzt keine juristische oder ärztliche Beratung. <b>Keine Gewähr</b> für Richtigkeit, Vollständigkeit oder Aktualität – die Rechtslage ändert sich. Maßgeblich ist immer der amtliche Gesetzestext. Im Zweifel Polizei, Behörden oder Anwalt fragen. <span style="white-space:nowrap">Stand: <span id="standHome"></span></span></div>
@@ -653,6 +656,26 @@ Verantwortlich: siehe Impressum. Du hast das Recht auf Auskunft, Berichtigung un
       <button data-v="gelb" onclick="pickFilter('status','gelb',this)">Eingeschränkt</button>
       <button data-v="gruen" onclick="pickFilter('status','gruen',this)">Erlaubt</button>
     </div>
+    <label class="fld" style="margin-top:12px">Farbe (Tablette/Substanz)</label>
+    <div class="chipsel" id="fFarbe">
+      <button class="on" data-v="alle" onclick="pickFilter('farbe','alle',this)">Alle</button>
+      <button data-v="weiß" onclick="pickFilter('farbe','weiß',this)">Weiß</button>
+      <button data-v="gelb" onclick="pickFilter('farbe','gelb',this)">Gelb</button>
+      <button data-v="blau" onclick="pickFilter('farbe','blau',this)">Blau</button>
+      <button data-v="rot" onclick="pickFilter('farbe','rot',this)">Rot/Rosa</button>
+      <button data-v="grün" onclick="pickFilter('farbe','grün',this)">Grün</button>
+      <button data-v="braun" onclick="pickFilter('farbe','braun',this)">Braun</button>
+      <button data-v="bunt" onclick="pickFilter('farbe','bunt',this)">Bunt</button>
+    </div>
+    <label class="fld" style="margin-top:12px">Form</label>
+    <div class="chipsel" id="fForm">
+      <button class="on" data-v="alle" onclick="pickFilter('form','alle',this)">Alle</button>
+      <button data-v="rund" onclick="pickFilter('form','rund',this)">Rund</button>
+      <button data-v="länglich" onclick="pickFilter('form','länglich',this)">Länglich/Oval</button>
+      <button data-v="kapsel" onclick="pickFilter('form','kapsel',this)">Kapsel</button>
+      <button data-v="pulver" onclick="pickFilter('form','pulver',this)">Pulver</button>
+      <button data-v="flüssig" onclick="pickFilter('form','flüssig',this)">Flüssig</button>
+    </div>
     <button class="btn primary" style="margin-top:18px" onclick="applyFilter()"><i class="fa-solid fa-check"></i> Anwenden</button>
     <button class="btn ghost" onclick="resetFilter()">Zurücksetzen</button>
   </div></div>
@@ -796,8 +819,22 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 let DATA_SOURCE = 'lokal eingebettet';
 const STAND = 'Juni 2026';   // Stand der App-Daten
 
-/* PWA: Service Worker registrieren (offline + installierbar) */
-if('serviceWorker' in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
+/* PWA: Service Worker registrieren (offline + installierbar) + Update-Hinweis */
+function showUpdateBanner(){
+  if(document.getElementById('updBanner')) return;
+  const b=document.createElement('div'); b.id='updBanner';
+  b.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:110;background:var(--primary);color:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow-lg);font-size:13.5px';
+  b.innerHTML='<i class="fa-solid fa-rotate"></i><span style="flex:1">Neue Version verfügbar.</span><button onclick="location.reload()" style="border:none;background:var(--accent);color:#fff;border-radius:10px;padding:8px 14px;font-family:inherit;font-weight:700;cursor:pointer">Neu laden</button><button onclick="this.parentNode.remove()" aria-label="Schließen" style="border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:50%;width:30px;height:30px;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>';
+  document.body.appendChild(b);
+}
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>{
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    reg.addEventListener('updatefound',()=>{
+      const nw=reg.installing; if(!nw) return;
+      nw.addEventListener('statechange',()=>{ if(nw.state==='installed'&&navigator.serviceWorker.controller) showUpdateBanner(); });
+    });
+  }).catch(()=>{});
+}); }
 
 const QUELLEN = {
   waffg:   {titel:'Waffengesetz (WaffG) – amtlich', meta:'gesetze-im-internet.de', url:'https://www.gesetze-im-internet.de/waffg_2002/'},
@@ -1479,6 +1516,40 @@ function enrichBtm(){
 }
 function enrichLegal(){ enrichWeapons(); enrichBtm(); }
 
+/* =========================================================================
+   „NICHT GERINGE MENGE" – Grenzwerte der BGH-Rechtsprechung (Wirkstoffmenge!).
+   Ab diesem Wert droht § 29a BtMG (Freiheitsstrafe nicht unter 1 Jahr).
+   Nur etablierte Werte; ohne Gewähr – maßgeblich ist die aktuelle Rechtsprechung.
+   ========================================================================= */
+const BTM_GRENZWERT_ID = {
+  'd-heroin':'1,5 g Diamorphin-Hydrochlorid',
+  'd-kokain':'5 g Cocain-Hydrochlorid',
+  'd-amphetamin':'10 g Amphetamin-Base',
+  'd-methamphetamin':'5 g Metamfetamin-Base',
+  'd-mdma':'30 g MDMA-Base',
+  'd-cannabis':'7,5 g THC',
+  'd-cannabis-medizin':'7,5 g THC',
+  'd-lsd':'6 mg LSD',
+  'd-psilocybin':'1,2 g Psilocin',
+  'd-morphin':'4,5 g Morphin-Hydrochlorid',
+  'd-fentanyl':'75 mg Fentanyl-Base'
+};
+const BTM_GRENZWERT_WIRKSTOFF = {
+  'diamorphin':'1,5 g Diamorphin-Hydrochlorid',
+  'morphin':'4,5 g Morphin-Hydrochlorid',
+  'fentanyl':'75 mg Fentanyl-Base',
+  'cocain':'5 g Cocain-Hydrochlorid',
+  'amphetamin':'10 g Amphetamin-Base',
+  'metamfetamin':'5 g Metamfetamin-Base',
+  'mdma':'30 g MDMA-Base',
+  'thc':'7,5 g THC'
+};
+function grenzwertFor(it){
+  if(BTM_GRENZWERT_ID[it.id]) return BTM_GRENZWERT_ID[it.id];
+  const w=norm(it.wirkstoff||'');
+  return BTM_GRENZWERT_WIRKSTOFF[w]||'';
+}
+
 
 
 /* =========================================================================
@@ -1494,7 +1565,17 @@ const STATUS_TEXT = {rot:'Verboten / Straftat', gelb:'Eingeschränkt / Vorsicht'
 const STATUS_ICON = {rot:'fa-ban', gelb:'fa-triangle-exclamation', gruen:'fa-circle-check'};
 const STATUS_HEX  = {rot:'#dc2626', gelb:'#d97706', gruen:'#16a34a'};
 
-let CAT='alle', STATUS='alle', tmpCat='alle', tmpStatus='alle';
+let CAT='alle', STATUS='alle', FARBE='alle', FORM='alle';
+let tmpCat='alle', tmpStatus='alle', tmpFarbe='alle', tmpForm='alle';
+/* Aussehen-Text eines Eintrags (für Farbe/Form-Filter) */
+function looksHay(it){ return norm([it.farbe,it.form,it.merkmale,it.praegung].filter(Boolean).join(' ')); }
+function looksMatch(it){
+  if(FARBE==='alle' && FORM==='alle') return true;
+  const hay=looksHay(it); if(!hay) return false;
+  if(FARBE!=='alle' && (FARBE==='rot' ? !(hay.includes('rot')||hay.includes('rosa')) : !hay.includes(norm(FARBE)))) return false;
+  if(FORM!=='alle' && (FORM==='länglich' ? !(hay.includes(norm('länglich'))||hay.includes('oval')) : !hay.includes(norm(FORM)))) return false;
+  return true;
+}
 
 /* =========================================================================
    HELFER
@@ -1585,6 +1666,29 @@ async function prefetchImages(items){
   } finally { prefetchRunning=false; }
 }
 
+/* ---- Lokale Notizen (nur dieses Gerät) ---- */
+function getNotes(){ try{return JSON.parse(localStorage.getItem('ra_notes')||'{}');}catch(e){return {};} }
+function getNote(id){ const o=getNotes(); return o[id]||''; }
+function saveNote(id,text){
+  const o=getNotes();
+  if((text||'').trim()) o[id]=text; else delete o[id];
+  try{ localStorage.setItem('ra_notes',JSON.stringify(o)); }catch(e){}
+}
+
+/* ---- Verlauf „Zuletzt angesehen" ---- */
+function getHistory(){ try{return JSON.parse(localStorage.getItem('ra_history')||'[]');}catch(e){return [];} }
+function pushHistory(id){
+  let h=getHistory().filter(x=>x!==id); h.unshift(id); h=h.slice(0,10);
+  try{ localStorage.setItem('ra_history',JSON.stringify(h)); }catch(e){}
+}
+function renderHistory(){
+  const box=document.getElementById('histResults'), title=document.getElementById('histTitle');
+  if(!box||!title) return;
+  const list=getHistory().map(id=>DATA.find(d=>d.id===id)).filter(Boolean).slice(0,6);
+  title.style.display=list.length?'block':'none';
+  box.innerHTML=list.map(cardHTML).join('');
+}
+
 /* ---- Favoriten ---- */
 function getFavs(){ try{return JSON.parse(localStorage.getItem('ra_favorites')||'[]');}catch(e){return [];} }
 function isFav(id){ return getFavs().includes(id); }
@@ -1632,12 +1736,12 @@ function render(){
   const inp=document.getElementById('search');
   const q=inp?inp.value.trim():'';
   if(document.getElementById('searchClear')) document.getElementById('searchClear').style.display=q?'block':'none';
-  let list=DATA.filter(d=>(CAT==='alle'||d.kategorie===CAT)&&(STATUS==='alle'||d.ampel===STATUS)&&matches(d,q));
+  let list=DATA.filter(d=>(CAT==='alle'||d.kategorie===CAT)&&(STATUS==='alle'||d.ampel===STATUS)&&looksMatch(d)&&matches(d,q));
   let fuzzy=false;
-  if(!list.length && q.length>=4){ const nq=norm(q); const f=DATA.filter(d=>(CAT==='alle'||d.kategorie===CAT)&&(STATUS==='alle'||d.ampel===STATUS)&&fuzzyHit(d,nq)); if(f.length){ list=f; fuzzy=true; } }
+  if(!list.length && q.length>=4){ const nq=norm(q); const f=DATA.filter(d=>(CAT==='alle'||d.kategorie===CAT)&&(STATUS==='alle'||d.ampel===STATUS)&&looksMatch(d)&&fuzzyHit(d,nq)); if(f.length){ list=f; fuzzy=true; } }
   const box=document.getElementById('results');
   document.getElementById('count').textContent=(fuzzy?'Meintest du …? ':'')+list.length+(list.length===1?' Ergebnis':' Ergebnisse');
-  document.getElementById('filterBtn').classList.toggle('on',CAT!=='alle'||STATUS!=='alle');
+  document.getElementById('filterBtn').classList.toggle('on',CAT!=='alle'||STATUS!=='alle'||FARBE!=='alle'||FORM!=='alle');
   box.innerHTML=list.length?list.map(cardHTML).join(''):`<div class="empty"><i class="fa-solid fa-magnifying-glass"></i>Keine Treffer.<br><small>Anderen Begriff versuchen oder Filter zurücksetzen.</small></div>`;
   if(list.length) schedulePrefetch(list);
 }
@@ -1687,7 +1791,7 @@ function renderCats(){
   document.getElementById('allCats').innerHTML=html;
 }
 function openKategorie(cat){
-  CAT=cat; STATUS='alle';
+  CAT=cat; STATUS='alle'; FARBE='alle'; FORM='alle';
   const s=document.getElementById('search'); if(s) s.value='';
   document.getElementById('sucheTitle').textContent=CAT_INFO[cat].label;
   go('suche',document.getElementById('nav-start'));
@@ -1756,6 +1860,16 @@ function openDetail(id,keepScroll){
 
   const srcLinks=(it.quellen||[]).map(k=>{const s=QUELLEN[k];if(!s)return '';return `<a class="srclink" href="${s.url}" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square" style="color:var(--accent)"></i><span>${s.titel}<br><small style="color:var(--muted)">${s.meta}</small></span><i class="fa-solid fa-chevron-right ext"></i></a>`;}).join('');
 
+  const gw=grenzwertFor(it);
+  const gwBlock=gw?`<div class="block danger"><h4><i class="fa-solid fa-scale-unbalanced"></i> „Nicht geringe Menge" (BGH)</h4>
+    <div class="row"><div class="k">Grenzwert</div><div class="v strong">${escapeHtml(gw)}</div></div>
+    <div class="row"><div class="k">Bedeutung</div><div class="v">Ab dieser <b>Wirkstoffmenge</b> (nicht Gesamtgewicht des Gemischs!) greift § 29a BtMG: Freiheitsstrafe nicht unter 1 Jahr. Werte nach BGH-Rechtsprechung, ohne Gewähr.</div></div></div>`:'';
+
+  const noteVal=getNote(it.id);
+  const noteBlock=`<div class="block"><h4><i class="fa-solid fa-note-sticky"></i> Meine Notiz</h4>
+    <textarea rows="3" placeholder="z. B. lokale Besonderheiten, eigene Erfahrungen …" oninput="saveNote(${eid},this.value)" style="width:100%;border:1px solid var(--line);border-radius:11px;padding:10px;font-family:inherit;font-size:13.5px;background:var(--card);color:var(--ink);resize:vertical">${escapeHtml(noteVal)}</textarea>
+    <small style="color:var(--muted)">Wird nur auf diesem Gerät gespeichert.</small></div>`;
+
   document.getElementById('sheet').innerHTML=`
     <div class="hero">
       <img id="heroImg" src="${mainImg(it)}" alt="" data-imgq="${(imgQuery(it)).replace(/"/g,'&quot;')}" onerror="this.onerror=null;this.src='${fb}'" onclick="openLightbox(this.src)">
@@ -1765,7 +1879,7 @@ function openDetail(id,keepScroll){
     </div>
     <div class="pad">
       <div class="statusbig ${it.ampel}"><div class="ic"><i class="fa-solid ${STATUS_ICON[it.ampel]}"></i></div><div><div class="t1">${escapeHtml(it.einstufung||STATUS_TEXT[it.ampel])}</div><div class="t2">Status: ${STATUS_TEXT[it.ampel]}</div></div></div>
-      ${legalBlock}${merkBlock}${idBlock}${gefahrBlock}${syn}${galleryHTML}${dateiBlock}${similarHTML(it)}
+      ${legalBlock}${gwBlock}${merkBlock}${idBlock}${gefahrBlock}${syn}${galleryHTML}${dateiBlock}${noteBlock}${similarHTML(it)}
       ${srcLinks?`<div class="block"><h4><i class="fa-solid fa-book"></i> Quellen</h4>${srcLinks}</div>`:''}
       ${IS_ADMIN?`<div style="display:flex;gap:8px;margin:4px 0 10px"><button class="btn ghost" style="margin:0;flex:1" onclick="editEntry(${eid})"><i class="fa-solid fa-pen"></i> Bearbeiten</button><button class="btn ghost" style="margin:0;flex:1;color:var(--rot);border-color:var(--rot-line)" onclick="deleteEntry(${eid})"><i class="fa-solid fa-trash"></i> Löschen</button></div>`:''}
       <div class="mini-disc"><i class="fa-solid fa-triangle-exclamation"></i><div>Vereinfachte Orientierung, <b>keine Rechtsberatung, keine Gewähr</b>. Die Strafbarkeit hängt vom Einzelfall ab (Menge, Erlaubnis, Ort, Alter, Absicht). Maßgeblich sind die amtlichen Quellen. Stand: ${STAND}.</div></div>
@@ -1773,6 +1887,7 @@ function openDetail(id,keepScroll){
   const m=document.getElementById('modal');
   m.classList.add('open');
   if(!keepScroll) m.querySelector('.sheet').scrollTop=0;
+  pushHistory(it.id); renderHistory();
   try{ history.replaceState(null,'',location.pathname+'?id='+encodeURIComponent(it.id)); }catch(e){}
   // Bild best effort von Wikipedia nachladen, falls nur Symbol-Fallback
   if(!userImgsFor(it.id).length && !it.bild && !cachedImg(it)){
@@ -1822,6 +1937,7 @@ function go(view,el){
   document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.remove('active'));
   const navMap={start:'nav-start',suche:'nav-start',favoriten:'nav-favoriten',kamera:'nav-kamera',kategorien:'nav-kategorien',profil:'nav-profil',freigaben:'nav-profil',rechtliches:'nav-profil'};
   const navEl=document.getElementById(navMap[view]); if(navEl) navEl.classList.add('active');
+  if(view==='start') renderHistory();
   if(view==='favoriten') renderFavoriten();
   if(view==='freigaben') renderPending();
   if(view==='profil'){ updateFavSummary(); renderMyImgs(); refreshAdminUI(); }
@@ -1898,8 +2014,22 @@ async function saveEntry(){
   setAdStatus('Speichere …','work');
   try{
     const approved = IS_ADMIN || !!editId;   // Admin/Bearbeiten = freigegeben; Besucher = einreichen
-    const {error}=await c.from('eintraege').upsert({id:doc.id,kategorie:doc.kategorie,name:doc.name,ampel:doc.ampel,doc:doc,approved:approved});
-    if(error) throw error;
+    if(editId){
+      const {error}=await c.from('eintraege').upsert({id:doc.id,kategorie:doc.kategorie,name:doc.name,ampel:doc.ampel,doc:doc,approved:approved});
+      if(error) throw error;
+    } else {
+      // Neu: insert statt upsert – bei ID-Kollision (gleicher Name) Suffix anhängen statt überschreiben
+      const baseId=doc.id; let saved=false, lastErr=null;
+      for(let n=1;n<=6;n++){
+        doc.id = n===1 ? baseId : baseId+'-'+n;
+        if(DATA.some(d=>d.id===doc.id) || PENDING.some(d=>d.id===doc.id)) continue;
+        const {error}=await c.from('eintraege').insert({id:doc.id,kategorie:doc.kategorie,name:doc.name,ampel:doc.ampel,doc:doc,approved:approved});
+        if(!error){ saved=true; break; }
+        lastErr=error;
+        if(!(error.code==='23505'||/duplicate|conflict/i.test(error.message||''))) throw error;
+      }
+      if(!saved) throw (lastErr||new Error('ID bereits vergeben'));
+    }
     if(approved){
       const idx=DATA.findIndex(d=>d.id===doc.id); if(idx>=0) DATA[idx]=doc; else DATA.push(doc);
       enrichLegal(); renderCats(); render(); renderFavoriten();
@@ -1957,18 +2087,21 @@ async function deleteEntry(id){
 /* =========================================================================
    FILTER
    ========================================================================= */
-function openFilter(){ tmpCat=CAT; tmpStatus=STATUS; syncFilterUI(); document.getElementById('filterModal').classList.add('open'); }
+function openFilter(){ tmpCat=CAT; tmpStatus=STATUS; tmpFarbe=FARBE; tmpForm=FORM; syncFilterUI(); document.getElementById('filterModal').classList.add('open'); }
 function closeFilter(){ document.getElementById('filterModal').classList.remove('open'); }
 function pickFilter(type,val,el){
-  if(type==='cat'){ tmpCat=val; document.querySelectorAll('#fCat button').forEach(b=>b.classList.toggle('on',b===el)); }
-  else { tmpStatus=val; document.querySelectorAll('#fStatus button').forEach(b=>b.classList.toggle('on',b===el)); }
+  const boxes={cat:'#fCat',status:'#fStatus',farbe:'#fFarbe',form:'#fForm'};
+  if(type==='cat') tmpCat=val; else if(type==='status') tmpStatus=val; else if(type==='farbe') tmpFarbe=val; else tmpForm=val;
+  document.querySelectorAll(boxes[type]+' button').forEach(b=>b.classList.toggle('on',b===el));
 }
 function syncFilterUI(){
   document.querySelectorAll('#fCat button').forEach(b=>b.classList.toggle('on',b.dataset.v===tmpCat));
   document.querySelectorAll('#fStatus button').forEach(b=>b.classList.toggle('on',b.dataset.v===tmpStatus));
+  document.querySelectorAll('#fFarbe button').forEach(b=>b.classList.toggle('on',b.dataset.v===tmpFarbe));
+  document.querySelectorAll('#fForm button').forEach(b=>b.classList.toggle('on',b.dataset.v===tmpForm));
 }
-function applyFilter(){ CAT=tmpCat; STATUS=tmpStatus; document.getElementById('sucheTitle').textContent = CAT==='alle'?'Suche':CAT_INFO[CAT].label; closeFilter(); render(); }
-function resetFilter(){ tmpCat='alle'; tmpStatus='alle'; syncFilterUI(); }
+function applyFilter(){ CAT=tmpCat; STATUS=tmpStatus; FARBE=tmpFarbe; FORM=tmpForm; document.getElementById('sucheTitle').textContent = CAT==='alle'?'Suche':CAT_INFO[CAT].label; closeFilter(); render(); }
+function resetFilter(){ tmpCat='alle'; tmpStatus='alle'; tmpFarbe='alle'; tmpForm='alle'; syncFilterUI(); }
 
 /* =========================================================================
    DISCLAIMER
@@ -2165,9 +2298,15 @@ function renderSources(){
 /* =========================================================================
    SUPABASE: Daten laden (paginiert), falls konfiguriert
    ========================================================================= */
+function lastSyncText(){
+  try{ const t=localStorage.getItem('ra_datatime'); if(!t) return '';
+    return new Date(t).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  }catch(e){ return ''; }
+}
 function updateDataSourceLabel(){
   const el=document.getElementById('dataSource');
-  if(el) el.innerHTML='Datenquelle: <b>'+DATA_SOURCE+'</b> · '+DATA.length+' Einträge';
+  const sync=lastSyncText();
+  if(el) el.innerHTML='Datenquelle: <b>'+DATA_SOURCE+'</b> · '+DATA.length+' Einträge'+(sync?'<br><small>Zuletzt mit der Datenbank abgeglichen: '+sync+' Uhr</small>':'');
 }
 /* Gemeinsamer Supabase-Client (für Laden + Speichern) */
 function supa(){
@@ -2194,8 +2333,8 @@ async function loadFromSupabase(){
       DATA.length=0; approved.forEach(d=>DATA.push(d));
       enrichLegal();
       DATA_SOURCE='Supabase';
-      try{ localStorage.setItem('ra_datacache', JSON.stringify(approved)); }catch(e){}
-      renderCats(); render(); renderFavoriten(); updateFavSummary(); updateDataSourceLabel(); renderPending(); refreshAdminUI();
+      try{ localStorage.setItem('ra_datacache', JSON.stringify(approved)); localStorage.setItem('ra_datatime', new Date().toISOString()); }catch(e){}
+      renderCats(); render(); renderFavoriten(); renderHistory(); updateFavSummary(); updateDataSourceLabel(); renderPending(); refreshAdminUI();
       console.log('Supabase: '+approved.length+' freigegeben, '+PENDING.length+' offen.');
       // Foto-Vorschläge (nur für Admin sichtbar/abrufbar)
       try{ const {data:fd}=await client.from('foto_vorschlaege').select('*').eq('approved',false); PENDING_FOTOS=Array.isArray(fd)?fd:[]; renderPending(); refreshAdminUI(); }catch(e){ PENDING_FOTOS=[]; }
@@ -2427,7 +2566,7 @@ function init(){
   // Offline: zuletzt geladene Daten anzeigen, bis Supabase antwortet
   try{ const cache=JSON.parse(localStorage.getItem('ra_datacache')||'null'); if(Array.isArray(cache)&&cache.length){ DATA.length=0; cache.forEach(d=>DATA.push(d)); DATA_SOURCE='zuletzt geladen (offline)'; } }catch(e){}
   enrichLegal();
-  renderCats(); renderSources(); fillUploadEntries(); renderMyImgs(); updateFavSummary(); updateDataSourceLabel();
+  renderCats(); renderSources(); fillUploadEntries(); renderMyImgs(); updateFavSummary(); updateDataSourceLabel(); renderHistory();
   ['standHome','standProfil'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=STAND; });
   setProvider(getProvider()); setTheme(getTheme()); render();
   openFromUrl();        // Deep-Link ?id= öffnen, falls Eintrag schon vorhanden
