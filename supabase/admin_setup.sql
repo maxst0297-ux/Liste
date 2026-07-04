@@ -19,11 +19,11 @@ drop policy if exists "submit pending" on public.eintraege;
 drop policy if exists "admin all"      on public.eintraege;
 
 -- 3) Neue Policies
--- Öffentlich: nur FREIGEGEBENE Einträge lesen
+-- Öffentlich (ohne Login): nur FREIGEGEBENE Einträge lesen
 create policy "read approved" on public.eintraege
   for select to anon using (approved = true);
 
--- Anon: Einträge anlegen, bearbeiten, löschen (Admin-Kontrolle erfolgt in der App)
+-- Besucher: Einträge einreichen und bearbeiten (z. B. eigene pending-Einreichung)
 create policy "anon insert" on public.eintraege
   for insert to anon with check (true);
 
@@ -32,3 +32,7 @@ create policy "anon update" on public.eintraege
 
 create policy "anon delete" on public.eintraege
   for delete to anon using (true);
+
+-- Admin (nach signInWithPassword, role: authenticated): voller Zugriff
+create policy "admin all" on public.eintraege
+  for all to authenticated using (true) with check (true);
