@@ -11,7 +11,7 @@ Mit Supabase kannst du die ~128 Einträge in der Datenbank pflegen, **ohne Code-
 
 ## Teil A – Supabase einrichten (eigene, neue Datenbank)
 
-1. Supabase-Dashboard → **New project** → Name z. B. „rechtsampel“ / „datenbank“, Region wählen,
+1. Supabase-Dashboard → **New project** → Name z. B. „rechtsampel" / „datenbank", Region wählen,
    DB-Passwort setzen → **Create**. (NICHT dein bestehendes Projekt verwenden.)
    - Hinweis: Der kostenlose Tarif erlaubt meist **2 aktive Projekte** pro Organisation.
 2. In **diesem neuen Projekt**: links **SQL Editor** → **New query**.
@@ -19,7 +19,9 @@ Mit Supabase kannst du die ~128 Einträge in der Datenbank pflegen, **ohne Code-
 4. Daten importieren – **eine** Query:
    - **`supabase/data.sql`** einfügen → **Run** (kompakt, ~105 KB, ~128 Einträge in einem Schritt).
    (Danach hat die Tabelle 128 Zeilen – prüfbar unter **Table Editor → eintraege**.)
-5. Schlüssel **dieses neuen Projekts** kopieren: **Project Settings → API**:
+5. Schreib- & Moderationsrechte einrichten: **`supabase/admin_setup.sql`** einfügen → **Run**.
+6. Foto-Moderation einrichten: **`supabase/fotos_setup.sql`** einfügen → **Run**.
+7. Schlüssel **dieses neuen Projekts** kopieren: **Project Settings → API**:
    - **Project URL** (z. B. `https://abcd.supabase.co`)
    - **anon public** key (langer `eyJ...`-String) – dieser ist *öffentlich*, kein Geheimnis.
    - Achte darauf, dass oben das **neue** Projekt ausgewählt ist (nicht dein altes).
@@ -33,7 +35,7 @@ const SUPABASE_URL = 'https://abcd.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOi...';
 ```
 
-Speichern, committen, pushen. Im Profil der App steht dann „Datenquelle: **Supabase**“.
+Speichern, committen, pushen. Im Profil der App steht dann „Datenquelle: **Supabase**".
 
 ## Teil C – Auf Vercel veröffentlichen (eigenes, neues Projekt)
 
@@ -48,7 +50,13 @@ Speichern, committen, pushen. Im Profil der App steht dann „Datenquelle: **Sup
 > ohne neuen Deploy. Code-Änderungen (Layout etc.) erfordern wie üblich einen Git-Push (Vercel
 > deployt dann automatisch neu).
 
+## Fehlerbehebung: Speichern zeigt SQL-Code
+
+Wenn beim Speichern statt „Eintrag gespeichert" ein SQL-Befehl erscheint, fehlt das Schreibrecht.
+Lösung: In Supabase → SQL Editor → **`supabase/rls_fix.sql`** einfügen → **Run**. Danach funktioniert alles.
+
 ## Hinweise
 - Alles läuft in **eigenen, getrennten Projekten** – dein bestehendes Supabase-/Vercel-Projekt bleibt unberührt.
-- Der **anon-Key** gehört in den Client-Code; durch Row Level Security ist nur **Lesen** erlaubt.
-- Schreiben/Ändern geht aktuell **nur** im Supabase-Table-Editor (kein Schreibzugriff aus der App).
+- Der **anon-Key** gehört in den Client-Code; Lesen ist auf freigegebene Einträge beschränkt.
+- Admin-Login ist client-seitig (Passwort in der App); Schreibrechte gelten technisch für alle anon-Nutzer.
+- Schreiben/Freigeben/Löschen ist nur über die App-Oberfläche vorgesehen (Admin-Login erforderlich).

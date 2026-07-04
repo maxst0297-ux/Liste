@@ -13,12 +13,23 @@ create table if not exists public.foto_vorschlaege (
 
 alter table public.foto_vorschlaege enable row level security;
 
--- Besucher dürfen einreichen (nur als nicht-freigegeben), aber nicht lesen
-drop policy if exists "foto submit" on public.foto_vorschlaege;
-create policy "foto submit" on public.foto_vorschlaege
-  for insert to anon with check (approved = false);
+-- Hinweis: Admin ist client-seitig, deshalb braucht anon vollständige Schreibrechte.
 
--- Admin (eingeloggt): alles (lesen, freigeben, löschen)
-drop policy if exists "foto admin" on public.foto_vorschlaege;
-create policy "foto admin" on public.foto_vorschlaege
-  for all to authenticated using (true) with check (true);
+drop policy if exists "foto read"   on public.foto_vorschlaege;
+drop policy if exists "foto submit" on public.foto_vorschlaege;
+drop policy if exists "foto update" on public.foto_vorschlaege;
+drop policy if exists "foto delete" on public.foto_vorschlaege;
+drop policy if exists "foto admin"  on public.foto_vorschlaege;
+
+-- Admin muss alle Vorschläge (auch nicht freigegebene) sehen und bearbeiten können
+create policy "foto read" on public.foto_vorschlaege
+  for select to anon using (true);
+
+create policy "foto submit" on public.foto_vorschlaege
+  for insert to anon with check (true);
+
+create policy "foto update" on public.foto_vorschlaege
+  for update to anon using (true) with check (true);
+
+create policy "foto delete" on public.foto_vorschlaege
+  for delete to anon using (true);
